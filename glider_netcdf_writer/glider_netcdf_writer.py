@@ -121,6 +121,28 @@ class GliderNetCDFWriter(object):
         self.nc.close()
         self.nc = None
 
+    # TODO
+    # Each file must have different values for the following parameters:
+    # date_created, date_issued, date_modified
+    # geospatial_
+    #     lat_max
+    #     lat_min
+    #     lat_resolution
+    #     lat_units
+    #     lon_max
+    #     lon_min
+    #     lon_resolution
+    #     lon_units
+    #     vertical_max
+    #     vertical_min
+    #     vertical_positive
+    #     vertical_resolution
+    #     vertical_units
+    # history
+    # id
+    # time_coverage_end
+    # time_coverage_resolution
+    # time_coverage_start
     def set_global_attributes(self, global_attributes):
         for key, value in sorted(global_attributes.items()):
             self.nc.setncattr(key, value)
@@ -205,5 +227,3 @@ class GliderNetCDFWriter(object):
     # Use this method to feed the generator in
     def set_variable_config(self, variable_config_json):
         self.variable_config = variable_config_json
-
-    
