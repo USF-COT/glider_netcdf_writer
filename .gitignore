@@ -53,3 +53,6 @@ docs/_build/
 
 test_data
 test_data/*
+
+# Ignore VIM swap files
+*.swp
