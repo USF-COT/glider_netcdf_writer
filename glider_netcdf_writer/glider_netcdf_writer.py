@@ -20,8 +20,8 @@ from netCDF4 import Dataset
 import time as t
 
 
-def open_glider_netcdf(output_path, COMP_LEVEL=1):
-    return GliderNetCDFWriter(output_path, COMP_LEVEL)
+def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1):
+    return GliderNetCDFWriter(output_path, mode, COMP_LEVEL)
 
 
 class GliderNetCDFWriter(object):
@@ -29,10 +29,12 @@ class GliderNetCDFWriter(object):
 
     """
 
-    def __init__(self, output_path, COMP_LEVEL=1):
+    def __init__(self, output_path, mode='w', COMP_LEVEL=1):
         self.nc = None
         self.output_path = output_path
+        self.mode = mode
         self.COMP_LEVEL = COMP_LEVEL
+        self.datatypes = None
 
     def __setup_qaqc(self):
         # Create array of unsigned 8-bit integers to use for _qc flag values
@@ -61,7 +63,7 @@ class GliderNetCDFWriter(object):
             'sensor_name': ' ',
         }
         for key, value in sorted(attrs.items()):
-            self.time.setncattrs(key, value)
+            self.time.setncattr(key, value)
 
         # TIME_QC
         # time_qc: 1 byte integer (ie: byte)
@@ -108,16 +110,21 @@ class GliderNetCDFWriter(object):
             'observation_type': 'estimated'
         }
         for key, value in sorted(attrs.items()):
-            self.time_uv.setncattrs(key, value)
+            self.time_uv.setncattr(key, value)
 
     def __enter__(self):
-        self.nc = Dataset(self.output_path, 'w', format='NetCDF4_CLASSIC')
+        self.nc = Dataset(
+            self.output_path, self.mode,
+            format='NETCDF4_CLASSIC'
+        )
 
         self.__setup_qaqc()
-        self.__setup_time()
-        self.__setup_trajectory()
+        if 'time' not in self.nc.variables:
+            self.__setup_time()
 
-    def __exit__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
         self.nc.close()
         self.nc = None
 
@@ -148,27 +155,26 @@ class GliderNetCDFWriter(object):
             self.nc.setncattr(key, value)
 
     def set_trajectory_id(self, trajectory_id):
-        if self.trajectory_dimension is None:
-            self.trajectory_dimension = (
-                self.nc.createDimension('trajectory', 1)
-            )
-            self.trajectory = self.nc.createVariable(
-                'trajectory',
-                'i2',
-                ('trajectory',),
-                zlib=True,
-                complevel=self.COMP_LEVEL
-            )
+        self.trajectory_dimension = (
+            self.nc.createDimension('trajectory', 1)
+        )
+        trajectory_var = self.nc.createVariable(
+            'trajectory',
+            'i2',
+            ('trajectory',),
+            zlib=True,
+            complevel=self.COMP_LEVEL
+        )
 
-            attrs = {
-                'cf_role': 'trajectory_id',
-                'long_name': 'Unique identifier for each trajectory feature contained in the file',  # NOQA
-                'comment': 'A trajectory can span multiple data files each containing a single segment.'  # NOQA
-            }
-            for key, value in sorted(attrs.items()):
-                self.trajectory.setncattrs(key, value)
+        attrs = {
+            'cf_role': 'trajectory_id',
+            'long_name': 'Unique identifier for each trajectory feature contained in the file',  # NOQA
+            'comment': 'A trajectory can span multiple data files each containing a single segment.'  # NOQA
+        }
+        for key, value in sorted(attrs.items()):
+            trajectory_var.setncattr(key, value)
 
-        self.trajectory = [trajectory_id]
+        trajectory_var[0] = trajectory_id
 
     # SEGMENT_ID
     # segment_id: 2 byte integer
@@ -176,27 +182,26 @@ class GliderNetCDFWriter(object):
     # variable so that it shows up as a variable attribute.  Use the default
     # fill_value based on the data type
     def set_segment_id(self, segment_id):
-        if self.segment_id is None:
-            self.segment_id = self.nc.createVariable(
-                'segment_id',
-                'i2',
-                ('time',),
-                zlib=True,
-                complevel=self.COMP_LEVEL,
-                fill_value=NC_FILL_VALUES['i2']
-            )
+        segment_var = self.nc.createVariable(
+            'segment_id',
+            'i2',
+            ('time',),
+            zlib=True,
+            complevel=self.COMP_LEVEL,
+            fill_value=NC_FILL_VALUES['i2']
+        )
 
-            attrs = {
-                'comment': 'Sequential segment number within a trajectory/deployment. A segment corresponds to the set of data collected between 2 gps fixes obtained when the glider surfaces.',  # NOQA
-                'long_name': 'Segment ID',
-                'valid_min': 1,
-                'valid_max': 999,
-                'observation_type': 'calculated',
-            }
-            for key, value in sorted(attrs.items()):
-                self.segment_id.setncattrs(key, value)
+        attrs = {
+            'comment': 'Sequential segment number within a trajectory/deployment. A segment corresponds to the set of data collected between 2 gps fixes obtained when the glider surfaces.',  # NOQA
+            'long_name': 'Segment ID',
+            'valid_min': 1,
+            'valid_max': 999,
+            'observation_type': 'calculated',
+        }
+        for key, value in sorted(attrs.items()):
+            segment_var.setncattr(key, value)
 
-        self.segment_id = [segment_id]
+        segment_var[0] = segment_id
 
     # PROFILE_ID
     # profile_id: 2 byte integer
@@ -204,25 +209,86 @@ class GliderNetCDFWriter(object):
     # variable so that it shows up as a variable attribute.  Use the default
     # fill_value based on the data type.
     def set_profile_id(self, profile_id):
-        if self.profile_id is None:
-            self.profile_id = self.nc.createVariable(
-                'profile_id',
-                'i2',
-                ('time',),
+        profile_var = self.nc.createVariable(
+            'profile_id',
+            'i2',
+            ('time',),
+            zlib=True,
+            complevel=self.COMP_LEVEL,
+            fill_value=NC_FILL_VALUES['i2']
+        )
+
+        attrs = {
+            'comment': 'Sequential profile number within the current segment. A profile is defined as a single dive or climb',  # NOQA
+            'long_name': 'Profile ID',
+            'valid_min': 1,
+            'valid_max': 999,
+            'observation_type': 'calculated',
+        }
+        for key, value in sorted(attrs.items()):
+            profile_var.setncattr(key, value)
+
+        profile_var[0] = profile_id
+
+    def set_platform(self, platform_attrs):
+        platform = self.nc.createVariable('platform', 'i1')
+
+        for key, value in sorted(platform_attrs.items()):
+            platform.setncattr(key, value)
+
+    def set_instrument(self, name, attrs):
+        instrument = self.nc.createVariable(name, 'i1')
+
+        for key, value in sorted(attrs.items()):
+            instrument.setncattr(key, value)
+
+    def set_instruments(self, instruments_array):
+        for description in instruments_array:
+            self.set_instrument(description['name'], description['attrs'])
+
+    def set_datatype(self, desc):
+        if 'is_dimension' in desc and desc['is_dimension']:
+            return  # Skip independent fields
+
+        if len(desc) == 0:
+            return  # Skip empty configurations
+
+        datatype = self.nc.createVariable(
+            desc['name'],
+            desc['type'],
+            (desc['dimension'],),
+            zlib=True,
+            complevel=self.COMP_LEVEL,
+            fill_value=NC_FILL_VALUES[desc['type']]
+        )
+
+        for key, value in sorted(desc['attrs'].items()):
+            datatype.setncattr(key, value)
+
+        if 'qc' in desc:
+            qc = desc['qc']
+            qc_var = self.nc.createVariable(
+                desc['name'] + "_qc",
+                'i1',
+                (desc['dimension'],),
                 zlib=True,
                 complevel=self.COMP_LEVEL,
-                fill_value=NC_FILL_VALUES['i2']
+                fill_value=NC_FILL_VALUES['i1']
             )
+            # Append defaults
+            qc['attrs'].update({
+                'flag_meanings': self.QC_FLAG_MEANINGS,
+                'valid_min': self.QC_FLAGS[0],
+                'valid_max': self.QC_FLAGS[-1],
+                'flag_values': self.QC_FLAGS
+            })
+            for key, value in sorted(qc['attrs'].items()):
+                qc_var.setncattr(key, value)
 
-            attrs = {
-                'comment': 'Sequential profile number within the current segment. A profile is defined as a single dive or climb',  # NOQA
-                'long_name': 'Profile ID',
-                'valid_min': 1,
-                'valid_max': 999,
-                'observation_type': 'calculated',
-            }
-            for key, value in sorted(attrs.items()):
-                self.profile_id.setncattrs(key, value)
+    def set_datatypes(self, datatypes):
+        self.datatypes = datatypes
+        for key, desc in sorted(datatypes.items()):
+            self.set_datatype(desc)
 
     # Use this method to feed the generator in
     def set_variable_config(self, variable_config_json):

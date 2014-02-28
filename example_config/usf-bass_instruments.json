@@ -1,119 +1,128 @@
-{
-    "instrument_ctd": {
-        "nc_attrs": {
+[
+    {
+        "name": "instrument_ctd",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_altimeter": {
-        "nc_attrs": {
+    {
+        "name": "instrument_altimeter",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_gps": {
-        "nc_attrs": {
+    {
+        "name": "instrument_gps",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_compass": {
-        "nc_attrs": {
+    {
+        "name": "instrument_compass",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_attitude": {
-        "nc_attrs": {
+    {
+        "name": "instrument_attitude",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_radiance":
-        "nc_attrs": {
+    {
+        "name": "instrument_radiance",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_irradiance": {
-        "nc_attrs": {
+    {
+        "name": "instrument_irradiance",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_fluorometer": {
-        "nc_attrs": {
+    {
+        "name": "instrument_fluorometer",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     },
-    "instrument_dissolved_oxygen": {
-        "nc_attrs": {
+    {
+        "name": "instrument_dissolved_oxygen",
+        "attrs": {
             "serial_number": "0122",
             "make_model": "Seabird SBE 41CP",
-            "comment": "Slocum Glider ru29",
+            "comment": "Slocum Glider USF Bass",
             "long_name": "Seabird SBD 41CP Conductivity, Temperature, Depth Sensor",
             "platform": "platform",
-            "calibration_date": "2000-01-01", # ISO 8601 date
+            "calibration_date": "2000-01-01",
             "factory_calibrated": " ",
             "user_calibrated": " ",
             "calibration_report": " "
         }
     }
-}
+]

@@ -51,7 +51,6 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-test_data
 test_data/*
 
 # Ignore VIM swap files

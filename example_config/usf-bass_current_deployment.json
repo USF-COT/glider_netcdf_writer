@@ -8,5 +8,11 @@
         "contributor_role" : "Principal Investigator, Principal Investigator, Principal Investigator, and Data Manager",
         "sea_name" : "East Coast - US/Canada",
         "title" : "Slocum Glider Dataset"
+    },
+    "platform": {
+        "type": "platform",
+        "id": 4801516,
+        "wmo_id": 4801516,
+        "long_name": "Slocum Glider USF Bass"
     }
 }
