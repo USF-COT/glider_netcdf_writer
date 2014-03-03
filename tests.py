@@ -58,6 +58,10 @@ class TestMergedGliderDataReader(unittest.TestCase):
         else:
             self.mode = 'w'
 
+        self.sbd_tbd_path = '/home/localuser/glider_netcdf_writer/test_data/usf-bass'  # NOQA
+        self.sbd_file = 'usf-bass-2014-061-1-0.sbd'
+        self.tbd_file = 'usf-bass-2014-061-1-0.tbd'
+
     def test_with(self):
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
             glider_nc.set_global_attributes(self.global_attributes)
@@ -100,14 +104,14 @@ class TestMergedGliderDataReader(unittest.TestCase):
 
     def test_set_times(self):
         flightReader = GliderBDReader(
-            '/home/localuser/glider_netcdf_writer/test_data',
+            self.sbd_tbd_path,
             'sbd',
-            ['bass-2012-296-1-35.sbd']
+            [self.sbd_file]
         )
         scienceReader = GliderBDReader(
-            '/home/localuser/glider_netcdf_writer/test_data',
+            self.sbd_tbd_path,
             'tbd',
-            ['bass-2012-296-1-35.tbd']
+            [self.tbd_file]
         )
         reader = MergedGliderBDReader(flightReader, scienceReader)
 
@@ -131,14 +135,14 @@ class TestMergedGliderDataReader(unittest.TestCase):
 
     def test_data_insert(self):
         flightReader = GliderBDReader(
-            '/home/localuser/glider_netcdf_writer/test_data',
+            self.sbd_tbd_path,
             'sbd',
-            ['bass-2012-296-1-35.sbd']
+            [self.sbd_file]
         )
         scienceReader = GliderBDReader(
-            '/home/localuser/glider_netcdf_writer/test_data',
+            self.sbd_tbd_path,
             'tbd',
-            ['bass-2012-296-1-35.tbd']
+            [self.tbd_file]
         )
         reader = MergedGliderBDReader(flightReader, scienceReader)
 
