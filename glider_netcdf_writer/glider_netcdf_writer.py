@@ -13,11 +13,8 @@
 # https://github.com/IOOSProfilingGliders/Real-Time-File-Format/blob/master/util/ioos_template_example.py#L136  # NOQA
 
 import numpy as np
-from datetime import datetime, timedelta
 from netCDF4 import default_fillvals as NC_FILL_VALUES
-from netCDF4 import num2date, date2num
 from netCDF4 import Dataset
-import time as t
 
 
 def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1):
@@ -246,12 +243,22 @@ class GliderNetCDFWriter(object):
         for description in instruments_array:
             self.set_instrument(description['name'], description['attrs'])
 
-    def set_datatype(self, desc):
+    def set_times(self, times):
+        if type(times) == list:
+                times = np.array(times)
+        self.nc.variables['time'][:] = times
+
+    def set_datatype(self, key, desc):
         if 'is_dimension' in desc and desc['is_dimension']:
             return  # Skip independent fields
 
         if len(desc) == 0:
             return  # Skip empty configurations
+
+        if desc['name'] in self.nc.variables:
+            return  # This variable already exists
+
+        self.datatypes[key] = desc
 
         datatype = self.nc.createVariable(
             desc['name'],
@@ -286,10 +293,18 @@ class GliderNetCDFWriter(object):
                 qc_var.setncattr(key, value)
 
     def set_datatypes(self, datatypes):
-        self.datatypes = datatypes
+        self.datatypes = {}
         for key, desc in sorted(datatypes.items()):
-            self.set_datatype(desc)
+            self.set_datatype(key, desc)
 
-    # Use this method to feed the generator in
-    def set_variable_config(self, variable_config_json):
-        self.variable_config = variable_config_json
+    def insert_data(self, datatype, data):
+        if datatype in self.datatypes:
+            desc = self.datatypes[datatype]
+            if type(data) == list:
+                data = np.array(data)
+                try:
+                    self.nc.variables[desc['name']][:] = data
+                except Exception, e:
+                    print '%s: %s - %s' % (datatype, data, e)
+        else:
+            print "%s not in datatype" % (datatype)

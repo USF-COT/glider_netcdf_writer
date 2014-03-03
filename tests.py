@@ -12,6 +12,8 @@ from glider_netcdf_writer.glider_netcdf_writer import (
     open_glider_netcdf
 )
 
+from netCDF4 import default_fillvals as NC_FILL_VALUES
+
 
 class TestMergedGliderDataReader(unittest.TestCase):
 
@@ -93,21 +95,75 @@ class TestMergedGliderDataReader(unittest.TestCase):
     def test_set_instruments(self):
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
             glider_nc.set_instruments(self.instruments)
+            nc = glider_nc.nc
+            self.assertIn('instrument_ctd', nc.variables)
+
+    def test_set_times(self):
+        flightReader = GliderBDReader(
+            '/home/localuser/glider_netcdf_writer/test_data',
+            'sbd',
+            ['bass-2012-296-1-35.sbd']
+        )
+        scienceReader = GliderBDReader(
+            '/home/localuser/glider_netcdf_writer/test_data',
+            'tbd',
+            ['bass-2012-296-1-35.tbd']
+        )
+        reader = MergedGliderBDReader(flightReader, scienceReader)
+
+        times = []
+        for line in reader:
+            times.append(line['timestamp']['value'])
+
+        with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
+            glider_nc.set_times(times)
+            nc = glider_nc.nc
+            self.assertEqual(
+                nc.variables['time'][0],
+                times[0]
+            )
 
     def test_set_datatypes(self):
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
             glider_nc.set_datatypes(self.datatypes)
+            nc = glider_nc.nc
+            self.assertIn('depth', nc.variables)
 
     def test_data_insert(self):
         flightReader = GliderBDReader(
             '/home/localuser/glider_netcdf_writer/test_data',
-            'sbd'
+            'sbd',
+            ['bass-2012-296-1-35.sbd']
         )
         scienceReader = GliderBDReader(
             '/home/localuser/glider_netcdf_writer/test_data',
-            'tbd'
+            'tbd',
+            ['bass-2012-296-1-35.tbd']
         )
-        self.reader = MergedGliderBDReader(flightReader, scienceReader)
+        reader = MergedGliderBDReader(flightReader, scienceReader)
+
+        times = []
+        data_by_type = {}
+
+        for header in reader.headers:
+            key = header['name'] + '-' + header['units']
+            data_by_type[key] = []
+
+        for line in reader:
+            times.append(line['timestamp']['value'])
+            for key in data_by_type.keys():
+                if key in line:
+                    datum = line[key]['value']
+                else:
+                    datum = NC_FILL_VALUES['f8']
+                data_by_type[key].append(datum)
+
+        with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
+            glider_nc.set_times(times)
+            glider_nc.set_datatypes(self.datatypes)
+            for datatype, data in data_by_type.items():
+                glider_nc.insert_data(datatype, data)
+
 
 if __name__ == '__main__':
     unittest.main()
