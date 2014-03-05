@@ -272,9 +272,11 @@ class GliderNetCDFWriter(object):
         for key, value in sorted(desc['attrs'].items()):
             datatype.setncattr(key, value)
 
-        if 'qc' in desc:
-            qc = desc['qc']
-            qc_var = self.nc.createVariable(
+        if 'status_flag' in desc:
+            status_flag = desc['status_flag']
+            status_flag_name = desc['name'] + "_status_flag"
+            datatype.setncattr('ancillary_variables', status_flag_name)
+            status_flag_var = self.nc.createVariable(
                 desc['name'] + "_status_flag",
                 'i1',
                 (desc['dimension'],),
@@ -283,14 +285,14 @@ class GliderNetCDFWriter(object):
                 fill_value=NC_FILL_VALUES['i1']
             )
             # Append defaults
-            qc['attrs'].update({
+            status_flag['attrs'].update({
                 'flag_meanings': self.QC_FLAG_MEANINGS,
                 'valid_min': self.QC_FLAGS[0],
                 'valid_max': self.QC_FLAGS[-1],
                 'flag_values': self.QC_FLAGS
             })
-            for key, value in sorted(qc['attrs'].items()):
-                qc_var.setncattr(key, value)
+            for key, value in sorted(status_flag['attrs'].items()):
+                status_flag_var.setncattr(key, value)
 
     def set_datatypes(self, datatypes):
         self.datatypes = {}
