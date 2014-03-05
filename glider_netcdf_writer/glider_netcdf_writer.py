@@ -275,7 +275,7 @@ class GliderNetCDFWriter(object):
         if 'qc' in desc:
             qc = desc['qc']
             qc_var = self.nc.createVariable(
-                desc['name'] + "_qc",
+                desc['name'] + "_status_flag",
                 'i1',
                 (desc['dimension'],),
                 zlib=True,

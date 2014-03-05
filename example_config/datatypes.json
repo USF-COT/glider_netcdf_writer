@@ -68,7 +68,7 @@
     "m_vehicle_temp-degC": {
     },
     "m_gps_lat-lat": {
-        "name": "gps_lat",
+        "name": "latitude",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -140,7 +140,7 @@
         }
     },
     "m_lat-lat": {
-        "name": "lat",
+        "name": "latitude_estimate",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -170,7 +170,7 @@
     "m_roll-rad": {
     },
     "m_lon-lon": {
-        "name": "lon",
+        "name": "longitude_estimate",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -196,7 +196,7 @@
         }
     },
     "m_gps_lon-lon": {
-        "name": "gps_lon",
+        "name": "longitude",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -222,7 +222,7 @@
         }
     },
     "sci_water_temp-degc": {
-        "name": "temperature",
+        "name": "sea_water_temperature",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -249,13 +249,13 @@
         }
     },
     "sci_bbfl2s_chlor_scaled-ug/l": {
-        "name": "chlorophyll",
+        "name": "mass_concentration_of_chlorophyll_in_sea_water",
         "type": "f8",
         "dimension": "time",
         "attrs": {
-            "units": "parts per billion",
-            "standard_name": "CDOM",
-            "long_name": "Colored Dissolved Organic Matter",
+            "units": "ug/l",
+            "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
+            "long_name": "Chlorophyll mass concentration in sea water",
             "observation_type": "calculated",
             "ancillary_variables": "cdom_qc",
             "platform": "platform",
@@ -267,13 +267,13 @@
         },
         "qc": {
             "attrs": {
-                "long_name": "cdom Quality Flag",
-                "standard_name": "cdom status_flag"
+                "long_name": "chlorophyll Quality Flag",
+                "standard_name": "chlorophyll status_flag"
             }
         }
     },
     "sci_water_cond-s/m": {
-        "name": "conductivity",
+        "name": "sea_water_electrical_conductivity",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -300,13 +300,13 @@
         }
     },
     "sci_water_pressure-bar": {
-        "name": "pressure",
+        "name": "sea_water_pressure",
         "type": "f8",
         "dimension": "time",
         "attrs": {
             "axis": "Z",
             "units": "dbar",
-            "standard_name": "pressure",
+            "standard_name": "sea_water_pressure",
             "valid_min": 0,
             "valid_max": 2000,
             "long_name": "Pressure",
@@ -329,13 +329,13 @@
         }
     },
     "sci_bbfl2s_bb_scaled-nodim": {
-        "name": "backscatter",
+        "name": "backscattering_ratio",
         "type": "f8",
         "dimension": "time",
         "attrs": {
             "units": "nodim",
-            "standard_name": "backscatter scaled",
-            "long_name": "Backscatter Scaled",
+            "standard_name": "backscattering_ratio",
+            "long_name": "Backscatter Ratio",
             "observation_type": "calculated",
             "ancillary_variables": "backscatter_qc",
             "platform": "platform",
@@ -353,13 +353,13 @@
         }
     },
     "sci_oxy3835_oxygen-nodim": {
-        "name": "dissolved_oxygen",
+        "name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water",
         "type": "f8",
         "dimension": "time",
         "attrs": {
-            "units": "nodim",
-            "standard_name": "dissolved_oxygen",
-            "long_name": "Dissolved Oxygen",
+            "units": "uM",
+            "standard_name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water",
+            "long_name": "Dissolved Oxygen Mole Concentration",
             "observation_type": "calculated",
             "ancillary_variables": "dissolved_oxygen_qc",
             "platform": "platform",
@@ -377,12 +377,12 @@
         }
     },
     "sci_bbfl2s_cdom_scaled-ppb": {
-        "name": "cdom",
+        "name": "concentration_of_coloured_dissolved_organic_matter",
         "type": "f8",
         "dimension": "time",
         "attrs": {
             "units": "parts per billion",
-            "standard_name": "CDOM",
+            "standard_name": "concentration_of_coloured_dissolved_organic_matter",
             "long_name": "Colored Dissolved Organic Matter",
             "observation_type": "calculated",
             "ancillary_variables": "cdom_qc",
@@ -401,12 +401,12 @@
         }
     },
     "m_heading-rad": {
-        "name": "heading",
+        "name": "platform_yaw_angle",
         "type": "f8",
         "dimension": "time",
         "attrs": {
-            "units": "radians",
-            "standard_name": "Heading",
+            "units": "degrees",
+            "standard_name": "platform_yaw_angle",
             "long_name": "Compass Heading",
             "observation_type": "calculated",
             "ancillary_variables": "heading_qc",
