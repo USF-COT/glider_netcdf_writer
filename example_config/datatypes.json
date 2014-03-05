@@ -47,6 +47,27 @@
         }
     },
     "m_pitch-rad": {
+        "name": "platform_pitch_angle",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "radians",
+            "standard_name": "platform_pitch_angle",
+            "long_name": "Pitch",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_compass",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "pitch Quality Flag",
+                "standard_name": "platform_pitch_angle_status_flag"
+            }
+        }
     },
     "m_ballast_pumped-cc": {
     },
@@ -163,6 +184,27 @@
     "m_avg_speed-m/s": {
     },
     "m_roll-rad": {
+        "name": "platform_roll_angle",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "radians",
+            "standard_name": "platform_roll_angle",
+            "long_name": "Roll",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_compass",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "roll Quality Flag",
+                "standard_name": "platform_roll_angle_status_flag"
+            }
+        }
     },
     "m_lon-lon": {
         "name": "longitude_estimate",
@@ -404,8 +446,8 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "heading Quality Flag",
-                "standard_name": "heading_status_flag"
+                "long_name": "platform_yaw_angle Quality Flag",
+                "standard_name": "platform_yaw_angle_status_flag"
             }
         }
     }
