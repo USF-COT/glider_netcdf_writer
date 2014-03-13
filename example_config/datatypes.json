@@ -41,13 +41,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "depth Quality Flag",
-                "standard_name": "depth_status_flag"
+                "long_name": "depth Quality Flag"
             }
         }
     },
     "m_pitch-rad": {
-        "name": "platform_pitch_angle",
+        "name": "pitch",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -64,8 +63,7 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "pitch Quality Flag",
-                "standard_name": "platform_pitch_angle_status_flag"
+                "long_name": "pitch Quality Flag"
             }
         }
     },
@@ -107,15 +105,14 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "gps lat Quality Flag",
-                "standard_name": "gps lat_status_flag"
+                "long_name": "gps lat Quality Flag"
             }
         }
     },
     "m_water_vy-m/s": {
-        "name": "northward_sea_water_velocity",
+        "name": "v",
         "type": "f8",
-        "dimension": "time",
+        "dimension": "time_uv",
         "attrs": {
             "units": "m s-1",
             "standard_name": "northward_sea_water_velocity",
@@ -129,15 +126,14 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name" : "northward_sea_water_velocity Quality Flag",
-                "standard_name" : "v_status_flag"
+                "long_name" : "northward_sea_water_velocity Quality Flag"
             }
         }
     },
     "m_water_vx-m/s": {
-        "name": "eastward_sea_water_velocity",
+        "name": "u",
         "type": "f8",
-        "dimension": "time",
+        "dimension": "time_uv",
         "attrs": {
             "units": "m s-1",
             "standard_name": "eastward_sea_water_velocity",
@@ -151,8 +147,7 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name" : "eastward_sea_water_velocity Quality Flag",
-                "standard_name" : "eastward_sea_water_velocity_status_flag"
+                "long_name" : "eastward_sea_water_velocity Quality Flag"
             }
         }
     },
@@ -176,15 +171,14 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "lat Quality Flag",
-                "standard_name": "lat_status_flag"
+                "long_name": "lat Quality Flag"
             }
         }
     },
     "m_avg_speed-m/s": {
     },
     "m_roll-rad": {
-        "name": "platform_roll_angle",
+        "name": "roll",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -201,8 +195,7 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "roll Quality Flag",
-                "standard_name": "platform_roll_angle_status_flag"
+                "long_name": "roll Quality Flag"
             }
         }
     },
@@ -226,8 +219,7 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "lon Quality Flag",
-                "standard_name": "lon_status_flag"
+                "long_name": "lon Quality Flag"
             }
         }
     },
@@ -251,13 +243,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "gps lon Quality Flag",
-                "standard_name": "gps lon_status_flag"
+                "long_name": "gps lon Quality Flag"
             }
         }
     },
     "sci_water_temp-degc": {
-        "name": "sea_water_temperature",
+        "name": "temperature",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -277,13 +268,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "temperature Quality Flag",
-                "standard_name": "temperature_status_flag"
+                "long_name": "temperature Quality Flag"
             }
         }
     },
     "sci_bbfl2s_chlor_scaled-ug/l": {
-        "name": "mass_concentration_of_chlorophyll_in_sea_water",
+        "name": "chl",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -300,13 +290,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "chlorophyll Quality Flag",
-                "standard_name": "chlorophyll_status_flag"
+                "long_name": "chlorophyll Quality Flag"
             }
         }
     },
     "sci_water_cond-s/m": {
-        "name": "sea_water_electrical_conductivity",
+        "name": "conductivity",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -326,13 +315,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "conductivity Quality Flag",
-                "standard_name": "conductivity_status_flag"
+                "long_name": "conductivity Quality Flag"
             }
         }
     },
     "sci_water_pressure-bar": {
-        "name": "sea_water_pressure",
+        "name": "pressure",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -354,13 +342,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "pressure Quality Flag",
-                "standard_name": "pressure_status_flag"
+                "long_name": "pressure Quality Flag"
             }
         }
     },
     "sci_bbfl2s_bb_scaled-nodim": {
-        "name": "backscattering_ratio",
+        "name": "backscatter",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -377,13 +364,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "backscatter Quality Flag",
-                "standard_name": "backscatter_status_flag"
+                "long_name": "backscatter Quality Flag"
             }
         }
     },
     "sci_oxy3835_oxygen-nodim": {
-        "name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water",
+        "name": "dissolved_oxygen",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -400,13 +386,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water Quality Flag",
-                "standard_name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water_status_flag"
+                "long_name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water Quality Flag"
             }
         }
     },
     "sci_bbfl2s_cdom_scaled-ppb": {
-        "name": "concentration_of_coloured_dissolved_organic_matter",
+        "name": "cdom",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -423,13 +408,12 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "cdom Quality Flag",
-                "standard_name": "cdom_status_flag"
+                "long_name": "cdom Quality Flag"
             }
         }
     },
     "m_heading-rad": {
-        "name": "platform_yaw_angle",
+        "name": "heading",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -446,8 +430,7 @@
         },
         "status_flag": {
             "attrs": {
-                "long_name": "platform_yaw_angle Quality Flag",
-                "standard_name": "platform_yaw_angle_status_flag"
+                "long_name": "platform_yaw_angle Quality Flag"
             }
         }
     }

@@ -125,7 +125,7 @@ class GliderNetCDFWriter(object):
         self.nc.close()
         self.nc = None
 
-    # TODO
+    # Warning!
     # Each file must have different values for the following parameters:
     # date_created, date_issued, date_modified
     # geospatial_
@@ -152,24 +152,27 @@ class GliderNetCDFWriter(object):
             self.nc.setncattr(key, value)
 
     def set_trajectory_id(self, trajectory_id):
-        self.trajectory_dimension = (
-            self.nc.createDimension('trajectory', 1)
-        )
-        trajectory_var = self.nc.createVariable(
-            'trajectory',
-            'i2',
-            ('trajectory',),
-            zlib=True,
-            complevel=self.COMP_LEVEL
-        )
+        if 'trajectory' not in self.nc.variables:
+            self.trajectory_dimension = (
+                self.nc.createDimension('trajectory', 1)
+            )
+            trajectory_var = self.nc.createVariable(
+                'trajectory',
+                'i2',
+                ('trajectory',),
+                zlib=True,
+                complevel=self.COMP_LEVEL
+            )
 
-        attrs = {
-            'cf_role': 'trajectory_id',
-            'long_name': 'Unique identifier for each trajectory feature contained in the file',  # NOQA
-            'comment': 'A trajectory can span multiple data files each containing a single segment.'  # NOQA
-        }
-        for key, value in sorted(attrs.items()):
-            trajectory_var.setncattr(key, value)
+            attrs = {
+                'cf_role': 'trajectory_id',
+                'long_name': 'Unique identifier for each trajectory feature contained in the file',  # NOQA
+                'comment': 'A trajectory can span multiple data files each containing a single segment.'  # NOQA
+            }
+            for key, value in sorted(attrs.items()):
+                trajectory_var.setncattr(key, value)
+        else:
+            trajectory_var = self.nc.variables['trajectory']
 
         trajectory_var[0] = trajectory_id
 
@@ -182,7 +185,7 @@ class GliderNetCDFWriter(object):
         segment_var = self.nc.createVariable(
             'segment_id',
             'i2',
-            ('time',),
+            ('trajectory',),
             zlib=True,
             complevel=self.COMP_LEVEL,
             fill_value=NC_FILL_VALUES['i2']
@@ -248,6 +251,9 @@ class GliderNetCDFWriter(object):
                 times = np.array(times)
         self.nc.variables['time'][:] = times
 
+    def set_time_uv(self, time_uv):
+        self.nc.variables['time_uv'][0] = time_uv
+
     def set_datatype(self, key, desc):
         if 'is_dimension' in desc and desc['is_dimension']:
             return  # Skip independent fields
@@ -277,7 +283,7 @@ class GliderNetCDFWriter(object):
             status_flag_name = desc['name'] + "_status_flag"
             datatype.setncattr('ancillary_variables', status_flag_name)
             status_flag_var = self.nc.createVariable(
-                desc['name'] + "_status_flag",
+                status_flag_name,
                 'i1',
                 (desc['dimension'],),
                 zlib=True,
@@ -285,7 +291,9 @@ class GliderNetCDFWriter(object):
                 fill_value=NC_FILL_VALUES['i1']
             )
             # Append defaults
+            sf_standard_name = desc['attrs']['standard_name'] + ' status_flag'
             status_flag['attrs'].update({
+                'standard_name': sf_standard_name,
                 'flag_meanings': self.QC_FLAG_MEANINGS,
                 'valid_min': self.QC_FLAGS[0],
                 'valid_max': self.QC_FLAGS[-1],
@@ -305,7 +313,16 @@ class GliderNetCDFWriter(object):
             if type(data) == list:
                 data = np.array(data)
                 try:
-                    self.nc.variables[desc['name']][:] = data
+                    if desc['dimension'] == 'time':
+                        self.nc.variables[desc['name']][:] = data
+                    else:
+                        # TODO: Fix this hack for values in the time_uv
+                        # dimension
+                        value = NC_FILL_VALUES['f8']
+                        for datum in data:
+                            if datum != NC_FILL_VALUES['f8']:
+                                value = datum
+                        self.nc.variables[desc['name']][0] = value
                 except Exception, e:
                     print '%s: %s - %s' % (datatype, data, e)
         else:

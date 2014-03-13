@@ -77,6 +77,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
 
     def test_segment_id(self):
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
+            glider_nc.set_trajectory_id(self.deployment['trajectory_id'])
             glider_nc.set_segment_id(3)
             nc = glider_nc.nc
             self.assertEqual(nc.variables['segment_id'][0], 3)
@@ -153,17 +154,21 @@ class TestMergedGliderDataReader(unittest.TestCase):
             key = header['name'] + '-' + header['units']
             data_by_type[key] = []
 
+        time_uv = NC_FILL_VALUES['f8']
         for line in reader:
             times.append(line['timestamp']['value'])
             for key in data_by_type.keys():
                 if key in line:
                     datum = line[key]['value']
+                    if key == 'm_water_vx-m/s':
+                        time_uv = line['timestamp']['value']
                 else:
                     datum = NC_FILL_VALUES['f8']
                 data_by_type[key].append(datum)
 
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
             glider_nc.set_times(times)
+            glider_nc.set_time_uv(time_uv)
             glider_nc.set_datatypes(self.datatypes)
             for datatype, data in data_by_type.items():
                 glider_nc.insert_data(datatype, data)
