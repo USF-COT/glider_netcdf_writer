@@ -247,8 +247,6 @@ class GliderNetCDFWriter(object):
             self.set_instrument(description['name'], description['attrs'])
 
     def set_times(self, times):
-        if type(times) == list:
-                times = np.array(times)
         self.nc.variables['time'][:] = times
 
     def set_time_uv(self, time_uv):
@@ -310,20 +308,18 @@ class GliderNetCDFWriter(object):
     def insert_data(self, datatype, data):
         if datatype in self.datatypes:
             desc = self.datatypes[datatype]
-            if type(data) == list:
-                data = np.array(data)
-                try:
-                    if desc['dimension'] == 'time':
-                        self.nc.variables[desc['name']][:] = data
-                    else:
-                        # TODO: Fix this hack for values in the time_uv
-                        # dimension
-                        value = NC_FILL_VALUES['f8']
-                        for datum in data:
-                            if datum != NC_FILL_VALUES['f8']:
-                                value = datum
-                        self.nc.variables[desc['name']][0] = value
-                except Exception, e:
-                    print '%s: %s - %s' % (datatype, data, e)
+            try:
+                if desc['dimension'] == 'time':
+                    self.nc.variables[desc['name']][:] = data
+                else:
+                    # TODO: Fix this hack for values in the time_uv
+                    # dimension
+                    value = NC_FILL_VALUES['f8']
+                    for datum in data:
+                        if datum != NC_FILL_VALUES['f8']:
+                            value = datum
+                    self.nc.variables[desc['name']][0] = value
+            except Exception, e:
+                print '%s: %s - %s' % (datatype, data, e)
         else:
             print "%s not in datatype" % (datatype)
