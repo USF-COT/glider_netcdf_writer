@@ -118,7 +118,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
 
         times = []
         for line in reader:
-            times.append(line['timestamp']['value'])
+            times.append(line['timestamp'])
 
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
             glider_nc.set_times(times)
@@ -156,12 +156,12 @@ class TestMergedGliderDataReader(unittest.TestCase):
 
         time_uv = NC_FILL_VALUES['f8']
         for line in reader:
-            times.append(line['timestamp']['value'])
+            times.append(line['timestamp'])
             for key in data_by_type.keys():
                 if key in line:
-                    datum = line[key]['value']
+                    datum = line[key]
                     if key == 'm_water_vx-m/s':
-                        time_uv = line['timestamp']['value']
+                        time_uv = line['timestamp']
                 else:
                     datum = NC_FILL_VALUES['f8']
                 data_by_type[key].append(datum)
