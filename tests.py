@@ -8,7 +8,7 @@ from glider_binary_data_reader.glider_bd_reader import (
 import os
 import json
 
-from glider_netcdf_writer.glider_netcdf_writer import (
+from glider_netcdf_writer import (
     open_glider_netcdf
 )
 
@@ -52,7 +52,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
             contents = f.read()
         self.instruments = json.loads(contents)
 
-        self.test_path = './nc_test.nc'
+        self.test_path = '/tmp/nc_test.nc'
         if os.path.isfile(self.test_path):
             self.mode = 'a'
         else:
