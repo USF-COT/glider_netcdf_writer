@@ -208,7 +208,7 @@ class GliderNetCDFWriter(object):
     # kerfoot@marine.rutgers.edu: explicitly specify fill_value when creating
     # variable so that it shows up as a variable attribute.  Use the default
     # fill_value based on the data type.
-    def set_profile_id(self, profile_id):
+    def set_profile_ids(self, profile_ids):
         profile_var = self.nc.createVariable(
             'profile_id',
             'i2',
@@ -228,7 +228,7 @@ class GliderNetCDFWriter(object):
         for key, value in sorted(attrs.items()):
             profile_var.setncattr(key, value)
 
-        profile_var[0] = profile_id
+        profile_var[:] = profile_ids
 
     def set_platform(self, platform_attrs):
         platform = self.nc.createVariable('platform', 'i1')

@@ -52,7 +52,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
             contents = f.read()
         self.instruments = json.loads(contents)
 
-        self.test_path = '/tmp/nc_test.nc'
+        self.test_path = './nc_test.nc'
         if os.path.isfile(self.test_path):
             self.mode = 'a'
         else:
@@ -82,9 +82,9 @@ class TestMergedGliderDataReader(unittest.TestCase):
             nc = glider_nc.nc
             self.assertEqual(nc.variables['segment_id'][0], 3)
 
-    def test_profile_id(self):
+    def test_profile_ids(self):
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
-            glider_nc.set_profile_id(4)
+            glider_nc.set_profile_ids([4])
             nc = glider_nc.nc
             self.assertEqual(nc.variables['profile_id'][0], 4)
 
