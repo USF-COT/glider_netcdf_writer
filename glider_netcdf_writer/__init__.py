@@ -278,7 +278,7 @@ class GliderNetCDFWriter(object):
 
         if 'status_flag' in desc:
             status_flag = desc['status_flag']
-            status_flag_name = desc['name'] + "_status_flag"
+            status_flag_name = desc['name'] + "_qc"
             datatype.setncattr('ancillary_variables', status_flag_name)
             status_flag_var = self.nc.createVariable(
                 status_flag_name,
