@@ -29,7 +29,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
         self.global_attributes = json.loads(contents)
 
         bass_global_attr_path = (
-            '/home/localuser/glider_netcdf_writer/example_config/usf-bass_current_deployment.json'  # NOQA
+            '/home/localuser/glider_netcdf_writer/example_config/usf-bass/deployment.json'  # NOQA
         )
         with open(bass_global_attr_path, 'r') as f:
             contents = f.read()
@@ -45,7 +45,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
         self.datatypes = json.loads(contents)
 
         instruments_config_path = (
-            '/home/localuser/glider_netcdf_writer/example_config/usf-bass_instruments.json'  # NOQA
+            '/home/localuser/glider_netcdf_writer/example_config/usf-bass/instruments.json'  # NOQA
         )
         self.instruments = {}
         with open(instruments_config_path, 'r') as f:

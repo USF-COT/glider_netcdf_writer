@@ -7,6 +7,9 @@
             "axis": "Z",
             "units": "meters",
             "standard_name": "altitude",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
             "valid_min": 0,
             "valid_max": 2000,
             "long_name": "Altitude",
@@ -15,7 +18,8 @@
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_altimeter",
-            "sensor_name": " "
+            "sensor_name": " ",
+            "comment": ""
         }
     },
     "m_present_time-timestamp": {
@@ -29,6 +33,9 @@
             "axis": "Z",
             "units": "meters",
             "standard_name": "depth",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
             "valid_min": 0,
             "valid_max": 2000,
             "long_name": "Depth",
@@ -37,7 +44,8 @@
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_ctd",
-            "sensor_name": " "
+            "sensor_name": " ",
+            "comment": ""
         },
         "status_flag": {
             "attrs": {
@@ -56,10 +64,13 @@
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_compass",
+            "sensor_name": " ",
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",
-            "sensor_name": " "
+            "comment": "",
+            "valid_min": -180,
+            "valid_max": 180
         },
         "status_flag": {
             "attrs": {
@@ -86,22 +97,79 @@
     "m_vehicle_temp-degC": {
     },
     "m_gps_lat-lat": {
-        "name": "latitude",
+        "name": "lat_fix",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "Y",
+            "units": "degrees_north",
+            "standard_name": "latitude fixes",
+            "long_name": "Latitude Surface Fixes",
+            "valid_min": -90,
+            "valid_max": 90,
+            "observation_type": "calculated",
+            "platform": "platform",
+            "comment": "No values are interpolated.  These are all from glider surfacing gps fixes.",
+            "sensor_name": " ",
+            "reference": "WGS84",
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "gps lat Quality Flag"
+            }
+        }
+    },
+    "m_lat-lat": {
+        "name": "lat_dr",
         "type": "f8",
         "dimension": "time",
         "attrs": {
             "axis": "Y",
             "units": "degrees_north",
             "standard_name": "latitude",
-            "long_name": "Latitude",
+            "long_name": "Latitude Dead Reckoning Calculated Position",
             "valid_min": -90,
             "valid_max": 90,
-            "observation_type": "measured",
+            "observation_type": "calculated",
             "platform": "platform",
-            "comment": "No values are interpolated.  These are all from glider surfacing gps fixes.",
+            "comment": "Teledyne calculated position output by the glider.",
             "sensor_name": " ",
             "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326"
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "lat Quality Flag"
+            }
+        }
+    },
+    "lat-lat": {
+        "name": "lat",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "Y",
+            "units": "degrees_north",
+            "standard_name": "latitude",
+            "long_name": "Latitude Linear Interpolation",
+            "valid_min": -90,
+            "valid_max": 90,
+            "observation_type": "calculated",
+            "platform": "platform",
+            "comment": "Latitude as a result of linear interpolation between surfacing fixes",
+            "sensor_name": " ",
+            "reference": "WGS84",
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
         },
         "status_flag": {
             "attrs": {
@@ -112,7 +180,7 @@
     "m_water_vy-m/s": {
         "name": "v",
         "type": "f8",
-        "dimension": "time_uv",
+        "dimension": null,
         "attrs": {
             "units": "m s-1",
             "standard_name": "northward_sea_water_velocity",
@@ -122,7 +190,11 @@
             "observation_type": "calculated",
             "platform": "platform",
             "sensor_name": " ",
-            "coordinates": "longitude_estimate latitude_estimate time"
+            "coordinates": "longitude_estimate latitude_estimate time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "comment": ""
         },
         "status_flag": {
             "attrs": {
@@ -133,7 +205,7 @@
     "m_water_vx-m/s": {
         "name": "u",
         "type": "f8",
-        "dimension": "time_uv",
+        "dimension": null,
         "attrs": {
             "units": "m s-1",
             "standard_name": "eastward_sea_water_velocity",
@@ -143,35 +215,15 @@
             "observation_type": "calculated",
             "platform": "platform",
             "sensor_name": " ",
-            "coordinates": "longitude_estimate latitude_estimate time"
+            "coordinates": "longitude_estimate latitude_estimate time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "comment": ""
         },
         "status_flag": {
             "attrs": {
                 "long_name" : "eastward_sea_water_velocity Quality Flag"
-            }
-        }
-    },
-    "m_lat-lat": {
-        "name": "latitude_estimate",
-        "type": "f8",
-        "dimension": "time",
-        "attrs": {
-            "axis": "Y",
-            "units": "degrees_north",
-            "standard_name": "latitude",
-            "long_name": "Latitude",
-            "valid_min": -90,
-            "valid_max": 90,
-            "observation_type": "measured",
-            "platform": "platform",
-            "comment": "Some values are linearly interpolated between measured coordinates.  See lat_status_flag",
-            "sensor_name": " ",
-            "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326"
-        },
-        "status_flag": {
-            "attrs": {
-                "long_name": "lat Quality Flag"
             }
         }
     },
@@ -191,7 +243,8 @@
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",
-            "sensor_name": " "
+            "sensor_name": " ",
+            "comment": ""
         },
         "status_flag": {
             "attrs": {
@@ -200,31 +253,61 @@
         }
     },
     "m_lon-lon": {
-        "name": "longitude_estimate",
+        "name": "lon_dr",
         "type": "f8",
         "dimension": "time",
         "attrs": {
             "axis": "X",
             "units": "degrees_east",
-            "standard_name": "longitude",
-            "long_name": "Longitude",
+            "standard_name": "latitude",
+            "long_name": "Latitude Dead Reckoning Calculated Position",
             "valid_min": -180,
             "valid_max": 180,
-            "observation_type": "measured",
+            "observation_type": "calculated",
             "platform": "platform",
-            "comment": "Some values are linearly interpolated between measured coordinates.  See lon_status_flag",
+            "comment": "Teledyne calculated position output by the glider.",
             "sensor_name": " ",
             "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326"
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
         },
         "status_flag": {
             "attrs": {
-                "long_name": "lon Quality Flag"
+                "long_name": "lon dead reckoning Quality Flag"
             }
         }
     },
     "m_gps_lon-lon": {
-        "name": "longitude",
+        "name": "lon_fix",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "X",
+            "units": "degrees_east",
+            "standard_name": "longitude fix",
+            "long_name": "Longitude Fix",
+            "valid_min": -180,
+            "valid_max": 180,
+            "observation_type": "measured",
+            "platform": "platform",
+            "comment": "No values are interpolated.  All are from glider surfacing gps fixes.",
+            "sensor_name": " ",
+            "reference": "WGS84",
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "lon fix Quality Flag"
+            }
+        }
+    },
+    "lon-lon": {
+        "name": "lon",
         "type": "f8",
         "dimension": "time",
         "attrs": {
@@ -234,16 +317,19 @@
             "long_name": "Longitude",
             "valid_min": -180,
             "valid_max": 180,
-            "observation_type": "measured",
+            "observation_type": "calculated",
             "platform": "platform",
-            "comment": "No values are interpolated.  These are all from glider surfacing gps fixes.",
+            "comment": "Longitude as a result of linear interpolation between surfacing fixes",
             "sensor_name": " ",
             "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326"
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
         },
         "status_flag": {
             "attrs": {
-                "long_name": "gps lon Quality Flag"
+                "long_name": "lon Quality Flag"
             }
         }
     },
@@ -264,11 +350,62 @@
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",
-            "sensor_name": " "
+            "sensor_name": " ",
+            "comment": ""
         },
         "status_flag": {
             "attrs": {
                 "long_name": "temperature Quality Flag"
+            }
+        }
+    },
+    "salinity-psu": {
+        "name": "salinity",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "psu",
+            "standard_name": "sea_water_salinity",
+            "valid_min": 0,
+            "valid_max": 10,
+            "long_name": "Salinity",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "coordinates": "lon lat depth time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "salinity Quality Flag"
+            }
+        }
+    },
+    "density-kg/m^3": {
+        "name": "density",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "kg/m^3",
+            "standard_name": "sea_water_density",
+            "valid_min": 0,
+            "valid_max": 10,
+            "long_name": "Density",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "coordinates": "lon lat depth time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "density Quality Flag"
             }
         }
     },
@@ -357,6 +494,8 @@
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_fluorometer",
+            "valid_min": 0,
+            "valid_max": 1,
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",
@@ -379,6 +518,8 @@
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_dissolved_oxygen",
+            "valid_min": 0,
+            "valid_max": 250,
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",
@@ -401,6 +542,8 @@
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_fluorometer",
+            "valid_min": 0,
+            "valid_max": 80,
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",
@@ -417,12 +560,14 @@
         "type": "f8",
         "dimension": "time",
         "attrs": {
-            "units": "degrees",
+            "units": "radians",
             "standard_name": "platform_yaw_angle",
             "long_name": "Compass Heading",
             "observation_type": "calculated",
             "platform": "platform",
             "instrument": "instrument_compass",
+            "valid_min": 0,
+            "valid_max": 6.28317,
             "accuracy": " ",
             "precision": " ",
             "resolution": " ",

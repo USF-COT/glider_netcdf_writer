@@ -1,0 +1,84 @@
+[
+    {
+        "name": "instrument_ctd",
+        "attrs": {
+            "serial_number": "0126",
+            "make_model": "Seabird WEBB Glider CTD",
+            "comment": "Slocum Glider USF Bass",
+            "long_name": "Seabird WEBB Glider Conductivity, Temperature, Depth Sensor",
+            "platform": "platform",
+            "calibration_date": "2013-09-06",
+            "user_calibrated": "2013-09-06",
+            "factory_calibrated": "2013-09-06",
+            "calibration_report": "http://ooma.marine.usf.edu/usf-bass/calibration/seabird_2013/75484R_CD_Contents"
+        }
+    },
+    {
+        "name": "instrument_altimeter",
+        "attrs": {
+        }
+    },
+    {
+        "name": "instrument_gps",
+        "attrs": {
+        }
+    },
+    {
+        "name": "instrument_attitude",
+        "attrs": {
+            "make_model": "PNI TCM3"
+        }
+    },
+    {
+        "name": "instrument_irradiance",
+        "attrs": {
+            "serial_number": "0191",
+            "make_model": "Satlantic OCR507 ICSW",
+            "comment": "Slocum Glider USF Bass",
+            "long_name": "Satlantic OCR507 ICSW Irradiance Sensor",
+            "platform": "platform",
+            "calibration_date": "2011-01-10",
+            "factory_calibrated": "2011-01-10",
+            "calibration_report": "http://ooma.marine.usf.edu/usf-bass/calibration/satlantic_2011/Calibration%20files/"
+        }
+    },
+    {
+        "name": "instrument_radiance",
+        "attrs": {
+            "serial_number": "0091",
+            "make_model": "Satlantic OCR507R10W",
+            "comment": "Slocum Glider USF Bass",
+            "long_name": "Satlantic OCR507R10W Radiance Sensor",
+            "platform": "platform",
+            "calibration_date": "2011-01-10",
+            "factory_calibrated": "2011-01-10",
+            "calibration_report": "http://ooma.marine.usf.edu/usf-bass/calibration/satlantic_2011/Calibration%20files/"
+        }
+    },
+    {
+        "name": "instrument_fluorometer",
+        "attrs": {
+            "serial_number": "0839",
+            "make_model": "Wetlabs BBFL2SLO",
+            "comment": "Slocum Glider USF Bass",
+            "long_name": "Wetlabs BBFL2SLO Flurometer",
+            "platform": "platform",
+            "calibration_date": "2011-04-19",
+            "factory_calibrated": "2011-04-19",
+            "calibration_report": "http://ooma.marine.usf.edu/usf-bass/calibration/wetlabs_2011/"
+        }
+    },
+    {
+        "name": "instrument_dissolved_oxygen",
+        "attrs": {
+            "serial_number": "0122",
+            "make_model": "Aanderaa 3835",
+            "comment": "Slocum Glider USF Bass",
+            "long_name": "Aanderaa Oxygen Optode 3835",
+            "platform": "platform",
+            "calibration_date": "2011-04-10",
+            "factory_calibrated": "2011-04-10",
+            "calibration_report": ""
+        }
+    }
+]
