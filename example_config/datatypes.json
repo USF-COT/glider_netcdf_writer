@@ -29,6 +29,7 @@
         "name": "depth",
         "type": "f8",
         "dimension": "time",
+        "global_bound": "geospatial_vertical",
         "attrs": {
             "axis": "Z",
             "units": "meters",
@@ -100,6 +101,7 @@
         "name": "lat_fix",
         "type": "f8",
         "dimension": "time",
+        "global_bound": "geospatial_lat",
         "attrs": {
             "axis": "Y",
             "units": "degrees_north",
@@ -283,6 +285,7 @@
         "name": "lon_fix",
         "type": "f8",
         "dimension": "time",
+        "global_bound": "geospatial_lon",
         "attrs": {
             "axis": "X",
             "units": "degrees_east",
