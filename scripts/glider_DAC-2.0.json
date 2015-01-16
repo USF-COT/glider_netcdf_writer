@@ -1,0 +1,56 @@
+{
+    "global_attributes": [
+        "Conventions",
+        "Metadata_Conventions",
+        "acknowledgement",
+        "comment",
+        "contributor_name",
+        "contributor_role",
+        "creator_email",
+        "creator_url",
+        "date_created",
+        "date_issued",
+        "date_modified",
+        "format_version",
+        "history",
+        "id",
+        "institution",
+        "keywords",
+        "keywords_vocabulary",
+        "license",
+        "metadata_link",
+        "naming_authority",
+        "platform_type",
+        "processing_level",
+        "project",
+        "publisher_email",
+        "publisher_url",
+        "references",
+        "sea_name",
+        "source",
+        "standard_name_vocabulary",
+        "summary",
+        "title",
+        "wmo_id"
+    ],
+    
+    "dimensions": [
+        "time",
+        "traj_strlen"
+    ],
+    
+    "variable_attributes": [
+        "comment",
+        "valid_min",
+        "valid_max",
+        "accuracy",
+        "precision",
+        "resolution"
+    ],
+    
+    "platform_attributes": [
+        "wmo_id",
+        "id",
+        "long_name"
+    ]
+}

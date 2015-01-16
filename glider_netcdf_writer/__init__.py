@@ -14,7 +14,7 @@
 
 import numpy as np
 from netCDF4 import default_fillvals as NC_FILL_VALUES
-from netCDF4 import Dataset
+from netCDF4 import Dataset, stringtoarr
 import sys
 from datetime import datetime
 
@@ -44,7 +44,7 @@ class GliderNetCDFWriter(object):
         self.output_path = output_path
         self.mode = mode
         self.COMP_LEVEL = COMP_LEVEL
-        self.datatypes = None
+        self.datatypes = {}
 
     def __setup_qaqc(self):
         """ Internal function for qaqc variable setup
@@ -120,17 +120,17 @@ class GliderNetCDFWriter(object):
         # Cannot use datetime.isoformat()
         # does not append Z at end of string
         now_time = datetime.utcnow()
-        time_string = now_time.strftime("%Y-%M-%DT%h:%m:%sZ")
+        time_string = now_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        history_string = "%s: %s\r\n" % (time_string, sys.argv[0])
 
-        if 'history' not in self.nc.attrs:
-            history = self.nc.setncattr("history", "")
+        if 'history' not in self.nc.ncattrs():
+            self.nc.setncattr("history", history_string)
             self.nc.setncattr("date_created", time_string)
         else:
-            history = self.nc.attrs['history']
+            self.nc.history += history_string
 
         self.nc.setncattr("date_modified", time_string)
         self.nc.setncattr("date_issued", time_string)
-        history += "%s: %s" % (time_string, __file__)
 
     def __enter__(self):
         """ Opens the NetCDF file. Sets up QAQC and time variables.
@@ -147,6 +147,7 @@ class GliderNetCDFWriter(object):
         self.__setup_time()
 
         self.__update_history()
+        self.insert_index = 0
 
         return self
 
@@ -188,33 +189,44 @@ class GliderNetCDFWriter(object):
         for key, value in sorted(global_attributes.items()):
             self.nc.setncattr(key, value)
 
-    def set_trajectory_id(self, trajectory_id):
-        """ Sets the trajectory ID for this dataset as a variable
+    def set_trajectory_id(self, glider, deployment_date):
+        """ Sets the trajectory dimension and variable for the dataset
+
+        Input:
+            - glider: Name of the glider deployed.
+            - deployment_date: String or DateTime of when glider was
+                first deployed.
         """
 
+        if(type(deployment_date) is datetime):
+            deployment_date = deployment_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        traj_str = "%s-%s" % (glider, deployment_date)
+
         if 'trajectory' not in self.nc.variables:
-            self.trajectory_dimension = (
-                self.nc.createDimension('trajectory', 1)
-            )
+            # Setup Trajectory Dimension
+            self.nc.createDimension('traj_strlen', len(traj_str))
+
+            # Setup Trajectory Variable
             trajectory_var = self.nc.createVariable(
                 'trajectory',
-                'i2',
-                ('trajectory',),
+                'S1',
+                ('traj_strlen',),
                 zlib=True,
                 complevel=self.COMP_LEVEL
             )
 
             attrs = {
                 'cf_role': 'trajectory_id',
-                'long_name': 'Unique identifier for each trajectory feature contained in the file',  # NOQA
-                'comment': 'A trajectory can span multiple data files each containing a single segment.'  # NOQA
+                'long_name': 'Trajectory/Deployment Name',  # NOQA
+                'comment': 'A trajectory is a single deployment of a glider and may span multiple data files.'  # NOQA
             }
             for key, value in sorted(attrs.items()):
                 trajectory_var.setncattr(key, value)
         else:
             trajectory_var = self.nc.variables['trajectory']
 
-        trajectory_var[0] = trajectory_id
+        trajectory_var[:] = stringtoarr(traj_str, len(traj_str))
 
     def set_segment_id(self, segment_id):
         """ Sets the segment ID as a variable
@@ -229,7 +241,7 @@ class GliderNetCDFWriter(object):
         segment_var = self.nc.createVariable(
             'segment_id',
             'i2',
-            ('trajectory',),
+            (),
             zlib=True,
             complevel=self.COMP_LEVEL,
             fill_value=NC_FILL_VALUES['i2']
@@ -303,12 +315,6 @@ class GliderNetCDFWriter(object):
         for description in instruments_array:
             self.set_instrument(description['name'], description['attrs'])
 
-    def set_times(self, times):
-        """ Sets all values in the time dimension of the dataset
-        """
-
-        self.nc.variables['time'][:] = times
-
     def set_datatype(self, key, desc):
         """ Sets up a datatype description for the dataset
         """
@@ -324,10 +330,15 @@ class GliderNetCDFWriter(object):
 
         self.datatypes[key] = desc
 
+        if desc['dimension'] is None:
+            dimension = ()
+        else:
+            dimension = (desc['dimension'],)
+
         datatype = self.nc.createVariable(
             desc['name'],
             desc['type'],
-            (desc['dimension'],),
+            dimensions=dimension,
             zlib=True,
             complevel=self.COMP_LEVEL,
             fill_value=NC_FILL_VALUES[desc['type']]
@@ -343,7 +354,7 @@ class GliderNetCDFWriter(object):
             status_flag_var = self.nc.createVariable(
                 status_flag_name,
                 'i1',
-                (desc['dimension'],),
+                dimension,
                 zlib=True,
                 complevel=self.COMP_LEVEL,
                 fill_value=NC_FILL_VALUES['i1']
@@ -364,7 +375,6 @@ class GliderNetCDFWriter(object):
         """ Sets an array of datatype descriptions in the dataset
         """
 
-        self.datatypes = {}
         for key, desc in sorted(datatypes.items()):
             self.set_datatype(key, desc)
 
@@ -379,17 +389,19 @@ class GliderNetCDFWriter(object):
 
         for name, desc in self.datatypes.items():
             if desc['dimension'] == 'time':
-                if desc['name'] in line:
-                    value = line[desc['name']]
+                if name in line:
+                    value = line[name]
                 else:
                     value = NC_FILL_VALUES['f8']
-                self.nc.variables[desc['name']].append(value)
+                self.nc.variables[desc['name']][self.insert_index] = value
             else:
                 if desc['name'] in line:
-                    self.nc.variables[desc['name']] = value
+                    self.nc.variables[desc['name']].setValue(value)
+
+        self.insert_index += 1
 
     def __find_min(self, dataset):
-        min_val = -sys.maxint - 1
+        min_val = sys.maxint
         for value in dataset:
             if value == NC_FILL_VALUES['f8']:
                 continue
@@ -400,7 +412,7 @@ class GliderNetCDFWriter(object):
         return min_val
 
     def __find_max(self, dataset):
-        max_val = sys.minint
+        max_val = -sys.maxint - 1
         for value in dataset:
             if value == NC_FILL_VALUES['f8']:
                 continue
@@ -418,19 +430,27 @@ class GliderNetCDFWriter(object):
         for key, desc in self.datatypes.items():
             if 'global_bound' in desc:
                 prefix = desc['global_bound']
-                self.nc.ncattrs[prefix + '_min'] = (
+                self.nc.setncattr(
+                    prefix + '_min',
                     self.__find_min(self.nc.variables[desc['name']])
                 )
-                self.nc.ncattrs[prefix + '_max'] = (
+                self.nc.setncattr(
+                    prefix + '_max',
                     self.__find_max(self.nc.variables[desc['name']])
                 )
-                self.nc.ncattrs[prefix + '_units'] = desc['attrs']['units']
-                self.nc.ncattrs[prefix + '_resolution'] = (
+                self.nc.setncattr(
+                    prefix + '_units',
+                    desc['attrs']['units']
+                )
+                self.nc.setncattr(
+                    prefix + '_resolution',
                     desc['attrs']['resolution']
                 )
-                self.nc.ncattrs[prefix + '_accuracy'] = (
+                self.nc.setncattr(
+                    prefix + '_accuracy',
                     desc['attrs']['accuracy']
                 )
-                self.nc.ncattrs[prefix + '_precision'] = (
+                self.nc.setncattr(
+                    prefix + '_precision',
                     desc['attrs']['precision']
                 )

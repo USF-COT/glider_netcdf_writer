@@ -1,13 +1,17 @@
 {
-    "trajectory_id": 58,
+    "glider": "usf-bass",
+    "trajectory_date": "20140303T1600Z",
     "global_attributes": {
-        "acknowledgment" : "National Oceanic & Atmospheric Administration",
+        "acknowledgement" : "National Oceanic & Atmospheric Administration",
         "featureType" : "trajectory",
         "project" : "Fishery Resource Assessment along the South Atlantic Continental Shelf",
         "contributor_name" : "Steve Murawski, David Mann, Chad Lembke and Michael Lindemuth",
         "contributor_role" : "Principal Investigator, Principal Investigator, Principal Investigator, and Data Manager",
         "sea_name" : "Gulf of Mexico",
-        "title" : "Slocum Glider Dataset"
+        "title" : "Slocum Glider Dataset",
+        "platform_type": "Slocum Glider",
+        "id": "usf-bass-20140303T1600",
+        "wmo_id": 4801516
     },
     "platform": {
         "type": "platform",
