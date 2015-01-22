@@ -81,6 +81,12 @@ class GliderNetCDFWriter(object):
             'long_name': 'Time',
             'observation_type': 'measured',
             'sensor_name': ' ',
+            'comment': ' ',
+            'valid_min': 0,
+            'valid_max': sys.maxsize,
+            'accuracy': '1 second',
+            'precision': '1 second',
+            'resolution': '1 second'
         }
         for key, value in sorted(attrs.items()):
             self.time.setncattr(key, value)

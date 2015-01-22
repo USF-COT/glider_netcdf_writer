@@ -38,6 +38,11 @@
         "time",
         "traj_strlen"
     ],
+
+    "ignore_variable_check": [
+        "profile_id",
+        "trajectory"
+    ],
     
     "variable_attributes": [
         "comment",
@@ -52,5 +57,40 @@
         "wmo_id",
         "id",
         "long_name"
+    ],
+
+    "ctd_attributes": [
+        "calibration_date",
+        "calibration_report",
+        "comment",
+        "factory_calibrated",
+        "long_name",
+        "make_model",
+        "platform",
+        "serial_number",
+        "type"
+    ],
+
+    "required_variables": [
+        "time",
+        "lat",
+        "lon",
+        "pressure",
+        "depth",
+        "temperature",
+        "conductivity",
+        "salinity",
+        "density",
+        "profile_id",
+        "profile_time",
+        "profile_lat",
+        "profile_lon",
+        "time_uv",
+        "lat_uv",
+        "lon_uv",
+        "u",
+        "v",
+        "platform",
+        "instrument_ctd"
     ]
 }
