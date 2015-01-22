@@ -28,7 +28,7 @@
         }
     },
     "m_present_time-timestamp": {
-        "is_dimension": true
+        "is_time": true
     },
     "m_depth-m": {
         "name": "depth",

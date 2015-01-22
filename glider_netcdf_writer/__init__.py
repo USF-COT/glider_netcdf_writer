@@ -17,10 +17,13 @@ from netCDF4 import default_fillvals as NC_FILL_VALUES
 from netCDF4 import Dataset, stringtoarr
 import sys
 from datetime import datetime
+from os import path
+import json
 
 
-def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1):
-    return GliderNetCDFWriter(output_path, mode, COMP_LEVEL)
+def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1,
+                       config_path=path.dirname(__file__)):
+    return GliderNetCDFWriter(output_path, mode, COMP_LEVEL, config_path)
 
 
 class GliderNetCDFWriter(object):
@@ -28,7 +31,8 @@ class GliderNetCDFWriter(object):
 
     """
 
-    def __init__(self, output_path, mode='w', COMP_LEVEL=1):
+    def __init__(self, output_path, mode='w', COMP_LEVEL=1,
+                 config_path=path.dirname(__file__)):
         """Initializes a Glider NetCDF Writer
         NOTE: Does not open the file.
 
@@ -44,6 +48,7 @@ class GliderNetCDFWriter(object):
         self.output_path = output_path
         self.mode = mode
         self.COMP_LEVEL = COMP_LEVEL
+        self.config_path = config_path
         self.datatypes = {}
 
     def __setup_qaqc(self):
@@ -55,67 +60,23 @@ class GliderNetCDFWriter(object):
         # Meanings of QC_FLAGS
         self.QC_FLAG_MEANINGS = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correc  table bad_data value_changed not_used not_used interpolated_value missing_value"  # NOQA
 
-    def __setup_time(self):
-        """ Internal function for time variable setup
+    def __setup_base_variables(self):
+        """ Internal function to setup base variables
+
+            Adds variables from base_variables.json
         """
 
-        # Skip creation if this variable already exists
-        if 'time' in self.nc.variables:
-            return
-
-        # Setup time dimension
-        self.time_dimension = self.nc.createDimension('time', None)
-        self.time = self.nc.createVariable(
-            'time',
-            'f8',
-            ('time',),
-            zlib=True,
-            complevel=self.COMP_LEVEL
+        base_path = path.join(
+            self.config_path,
+            'base_variables.json'
         )
 
-        attrs = {
-            'axis': "T",
-            'calendar': 'gregorian',
-            'units': 'seconds since 1970-01-01 00:00:00 UTC',
-            'standard_name': 'time',
-            'long_name': 'Time',
-            'observation_type': 'measured',
-            'sensor_name': ' ',
-            'comment': ' ',
-            'valid_min': 0,
-            'valid_max': sys.maxsize,
-            'accuracy': '1 second',
-            'precision': '1 second',
-            'resolution': '1 second'
-        }
-        for key, value in sorted(attrs.items()):
-            self.time.setncattr(key, value)
+        with open(base_path, 'r') as f:
+            contents = f.read()
+        base_var_config = json.loads(contents)
 
-        # TIME_QC
-        # time_qc: 1 byte integer (ie: byte)
-        # kerfoot@marine.rutgers.edu: explicitly specify
-        # fill_value when creating variable so that it shows
-        # up as a variable attribute.  Use the default
-        # fill_value based on the data type.
-        self.time_qc = self.nc.createVariable(
-            'time_qc',
-            'i1',
-            ('time',),
-            zlib=True,
-            complevel=self.COMP_LEVEL,
-            fill_value=NC_FILL_VALUES['i1']
-        )
-
-        attrs = {
-            'long_name': 'time Quality Flag',
-            'standard_name': 'time status_flag',
-            'flag_meanings': self.QC_FLAG_MEANINGS,
-            'valid_min': self.QC_FLAGS[0],
-            'valid_max': self.QC_FLAGS[-1],
-            'flag_values': self.QC_FLAGS
-        }
-        for key, value in sorted(attrs.items()):
-            self.time_qc.setncattr(key, value)
+        for key, desc in base_var_config.items():
+            self.set_datatype(key, desc)
 
     def __update_history(self):
         """ Updates the history, date_created, date_modified
@@ -150,7 +111,7 @@ class GliderNetCDFWriter(object):
         )
 
         self.__setup_qaqc()
-        self.__setup_time()
+        self.__setup_base_variables()
 
         self.__update_history()
         self.insert_index = 0
@@ -325,8 +286,16 @@ class GliderNetCDFWriter(object):
         """ Sets up a datatype description for the dataset
         """
 
+        # Skip timestamp variable, will be stored in time dimension
+        if 'is_time' in desc and desc['is_time']:
+            return
+
+        # Skip variables that already exist
+        if desc['name'] in self.nc.variables:
+            return
+
         if 'is_dimension' in desc and desc['is_dimension']:
-            return  # Skip independent fields
+            self.nc.createDimension(desc['name'], desc['dimension_length'])
 
         if len(desc) == 0:
             return  # Skip empty configurations
