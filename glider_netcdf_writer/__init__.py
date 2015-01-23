@@ -227,35 +227,11 @@ class GliderNetCDFWriter(object):
         segment_var[0] = segment_id
 
     def set_profile_ids(self, profile_ids):
-        """ Sets Profile ID as a variable
+        """ Sets Profile ID in NetCDF File
 
-        PROFILE_ID
-        profile_id: 2 byte integer
-        kerfoot@marine.rutgers.edu: explicitly specify fill_value when creating
-        variable so that it shows up as a variable attribute.  Use the default
-        fill_value based on the data type.
         """
 
-        profile_var = self.nc.createVariable(
-            'profile_id',
-            'i2',
-            ('time',),
-            zlib=True,
-            complevel=self.COMP_LEVEL,
-            fill_value=NC_FILL_VALUES['i2']
-        )
-
-        attrs = {
-            'comment': 'Sequential profile number within the current segment. A profile is defined as a single dive or climb',  # NOQA
-            'long_name': 'Profile ID',
-            'valid_min': 1,
-            'valid_max': 999,
-            'observation_type': 'calculated',
-        }
-        for key, value in sorted(attrs.items()):
-            profile_var.setncattr(key, value)
-
-        profile_var[:] = profile_ids
+        self.nc.variables['profile_id'] = profile_ids
 
     def set_platform(self, platform_attrs):
         """ Creates a variable that describes the glider
@@ -291,6 +267,9 @@ class GliderNetCDFWriter(object):
             return
 
         # Skip variables that already exist
+        if 'name' not in desc:
+            print key
+
         if desc['name'] in self.nc.variables:
             return
 

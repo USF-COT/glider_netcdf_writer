@@ -2,6 +2,7 @@
     {
         "name": "instrument_ctd",
         "attrs": {
+            "type": "platform",
             "serial_number": "0126",
             "make_model": "Seabird WEBB Glider CTD",
             "comment": "Slocum Glider USF Bass",

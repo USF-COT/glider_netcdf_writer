@@ -84,24 +84,6 @@
             }
         }
     },
-    "m_ballast_pumped-cc": {
-    },
-    "m_leakdetect_voltage-volts": {
-    },
-    "m_depth_rate-m/s": {
-    },
-    "m_battpos-in": {
-    },
-    "sci_m_present_secs_into_mission-sec": {
-    },
-    "sci_ocr507i_irrad1-uw/cm^2/nm": {
-    },
-    "sci_ocr507r_rad1-uw/cm^2/nm": {
-    },
-    "sci_m_present_time-timestamp": {
-    },
-    "m_vehicle_temp-degC": {
-    },
     "m_gps_lat-lat": {
         "name": "lat_fix",
         "type": "f8",
@@ -233,8 +215,6 @@
                 "long_name" : "eastward_sea_water_velocity Quality Flag"
             }
         }
-    },
-    "m_avg_speed-m/s": {
     },
     "m_roll-rad": {
         "name": "roll",
