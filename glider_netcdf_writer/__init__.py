@@ -231,7 +231,7 @@ class GliderNetCDFWriter(object):
 
         """
 
-        self.nc.variables['profile_id'] = profile_ids
+        self.nc.variables['profile_id'][0] = profile_ids
 
     def set_platform(self, platform_attrs):
         """ Creates a variable that describes the glider
@@ -332,6 +332,11 @@ class GliderNetCDFWriter(object):
         for key, desc in sorted(datatypes.items()):
             self.set_datatype(key, desc)
 
+    def fill_uv_vars(self, line):
+        self.nc.variables["time_uv"][0] = line["m_present_time-timestamp"]
+        self.nc.variables["lat_uv"][0] = line["m_gps_lat-lat"]
+        self.nc.variables["lon_uv"][0] = line["m_gps_lon-lon"]
+
     def insert_dict(self, line):
         """ Adds a data point glider_binary_data_reader library to NetCDF
 
@@ -349,8 +354,10 @@ class GliderNetCDFWriter(object):
                     value = NC_FILL_VALUES['f8']
                 self.nc.variables[desc['name']][self.insert_index] = value
             else:
-                if desc['name'] in line:
-                    self.nc.variables[desc['name']].setValue(value)
+                if name in line:
+                    self.nc.variables[desc['name']][0] = line[name]
+                    if name == "m_water_vx-m/s":
+                        self.fill_uv_vars(line)
 
         self.insert_index += 1
 
