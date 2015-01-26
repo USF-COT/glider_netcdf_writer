@@ -107,7 +107,10 @@ def main():
         glider_nc.set_global_attributes(global_attrs)
 
         # Set Trajectory
-        glider_nc.set_trajectory_id(deployment_attrs['trajectory_id'])
+        glider_nc.set_trajectory_id(
+            deployment_attrs['glider'],
+            deployment_attrs['trajectory_date']
+        )
 
         # Set Platform
         glider_nc.set_platform(deployment_attrs['platform'])

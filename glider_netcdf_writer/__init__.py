@@ -20,9 +20,11 @@ from datetime import datetime
 from os import path
 import json
 
+DEFAULT_GLIDER_BASE = path.join(path.dirname(__file__), "config")
+
 
 def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1,
-                       config_path=path.dirname(__file__)):
+                       config_path=DEFAULT_GLIDER_BASE):
     return GliderNetCDFWriter(output_path, mode, COMP_LEVEL, config_path)
 
 
@@ -32,7 +34,7 @@ class GliderNetCDFWriter(object):
     """
 
     def __init__(self, output_path, mode='w', COMP_LEVEL=1,
-                 config_path=path.dirname(__file__)):
+                 config_path=DEFAULT_GLIDER_BASE):
         """Initializes a Glider NetCDF Writer
         NOTE: Does not open the file.
 
