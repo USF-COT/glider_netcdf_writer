@@ -21,8 +21,8 @@ A brief overview of each file and folder follows:
 
 * [global_attributes.json](https://github.com/USF-COT/glider_netcdf_writer/blob/master/example_config/global_attributes.json) contains parameters that are specific to the glider institution.
 * [datatypes.json](https://github.com/USF-COT/glider_netcdf_writer/blob/master/example_config/datatypes.json) maps between glider generated types (e.g., m_depth-m) and types to be output to a NetCDF file (e.g., depth).  You will only need to edit this file if you need to add datatypes to the NetCDF files.  *Types in here that are not produced by your glider will not cause errors.*  Hopefully, through collaboration, we will be able to produce a complete mapping of glider types to NetCDF variables.
-* [<your-glider-name-here>/deployment.json](https://github.com/USF-COT/glider_netcdf_writer/blob/master/example_config/usf-bass/deployment.json) describes the current deployment for a given glider.  Includes global attribute details that change between deployments and information about the glider/platform deployed.
-* [<your-glider-name-here>/instruments.json](https://github.com/USF-COT/glider_netcdf_writer/blob/master/example_config/usf-bass/instruments.json) provides details about instruments deployed with a single glider.  instrument_ctd is the only required instrument in this file.
+* [your-glider-name-here/deployment.json](https://github.com/USF-COT/glider_netcdf_writer/blob/master/example_config/usf-bass/deployment.json) describes the current deployment for a given glider.  Includes global attribute details that change between deployments and information about the glider/platform deployed.
+* [your-glider-name-here/instruments.json](https://github.com/USF-COT/glider_netcdf_writer/blob/master/example_config/usf-bass/instruments.json) provides details about instruments deployed with a single glider.  instrument_ctd is the only required instrument in this file.
 
 ## Usage Examples
 
@@ -30,7 +30,7 @@ A brief overview of each file and folder follows:
 
 #### Create NetCDF File
 ```bash
-python /usr/local/bin/create_glider_netcdf.py usf-bass example_config/ blah.nc -f test_data/usf-bass/usf-bass-2014-061-1-0.sbd -s './test_data/usf-bass/usf-bass-2014-061-1-0.tbd'
+python /usr/local/bin/create_glider_netcdf.py usf-bass example_config/ blah.nc -f test_data/usf-bass/usf-bass-2014-061-1-0.sbd ./test_data/usf-bass/usf-bass-2014-061-1-1.sbd -s ./test_data/usf-bass/usf-bass-2014-061-1-0.tbd ./test_data/usf-bass/usf-bass-2014-061-1-1.tbd
 ```
 
 #### Check NetCDF File
