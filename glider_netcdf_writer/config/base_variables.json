@@ -1,0 +1,177 @@
+{
+    "time": {
+        "name": "time",
+        "is_dimension": true,
+        "dimension_length": null,
+        "dimension": "time",
+        "type": "f8",
+        "attrs": {
+            "axis": "T",
+            "calendar": "gregorian",
+            "units": "seconds since 1970-01-01T00:00:00Z",
+            "standard_name": "time",
+            "long_name": "Time",
+            "observation_type": "measured",
+            "sensor_name": " ",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 2147483647,
+            "accuracy": "1 second",
+            "precision": "1 second",
+            "resolution": "1 second"
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "time Quality Flag"
+            }
+        }
+    },
+    "platform": {
+        "name": "platform",
+        "dimension": null,
+        "type": "i1",
+        "attrs": {}
+    },
+    "profile_id": {
+        "name": "profile_id",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "Sequential profile number within the trajectory.  This value is unique in each file that is part of a single trajectory/deployment.",
+            "long_name": "Profile ID",
+            "valid_max": 2147483647,
+            "valid_min": 1
+        }
+    },
+    "profile_time": {
+        "name": "profile_time",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "calendar": "gregorian",
+            "comment": "Timestamp corresponding to the mid-point of the profile",
+            "long_name": "Profile Center Time",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "time",
+            "units": "seconds since 1970-01-01T00:00:00Z"
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_time Quality Flag"
+            }
+        }
+    },
+    "profile_lat": {
+        "name": "profile_lat",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "Value is interpolated to provide an estimate of the latitude at the mid-point of the profile",
+            "long_name": "Profile Center Latitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "latitude",
+            "units": "degrees_north",
+            "valid_max": 90,
+            "valid_min": -90
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_lat Quality Flag"
+            }
+        }
+    },
+    "profile_lon": {
+        "name": "profile_lon",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "Value is interpolated to provide an estimate of the longitude at the mid-point of the profile",
+            "long_name": "Profile Center Longitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "longitude",
+            "units": "degrees_east",
+            "valid_max": 180,
+            "valid_min": -180
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_lon Quality Flag"
+            }
+        }
+    },
+    "segment_id": {
+        "name": "segment_id",
+        "dimension": null,
+        "type": "i2",
+        "attrs": {
+            "comment": "Sequential segment number within a trajectory/deployment. A segment corresponds to the set of data collected between 2 gps fixes obtained when the glider surfaces.",
+            "long_name": "Segment ID",
+            "valid_min": 1,
+            "valid_max": 999,
+            "observation_type": "calculated"
+        }
+    },
+    "time_uv": {
+        "name": "time_uv",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "long_name": "Depth-Averaged Time",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "time",
+            "units": "seconds since 1970-01-01T00:00:00Z",
+            "valid_max": 0,
+            "valid_min": 2147483647
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "time_uv Quality Flag"
+            }
+        }
+    },
+    "lat_uv": {
+        "name": "lat_uv",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "long_name": "Depth-Averaged Latitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "latitude",
+            "units": "degrees_north",
+            "valid_max": 90,
+            "valid_min": -90
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "lat_uv Quality Flag"
+            }
+        }
+    },
+    "lon_uv": {
+        "name": "lon_uv",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "long_name": "Depth-Averaged Longitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "longitude",
+            "units": "degrees_east",
+            "valid_max": 180,
+            "valid_min": -180
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_lon Quality Flag"
+            }
+        }
+    }
+}
