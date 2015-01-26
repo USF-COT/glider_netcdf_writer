@@ -164,6 +164,8 @@ def main():
     default_standard_path = (
         path.join(
             path.dirname(__file__),
+            '..',
+            'etc',
             'glider_DAC-2.0.json'
         )
     )

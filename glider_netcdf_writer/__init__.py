@@ -205,26 +205,7 @@ class GliderNetCDFWriter(object):
         fill_value based on the data type
         """
 
-        segment_var = self.nc.createVariable(
-            'segment_id',
-            'i2',
-            (),
-            zlib=True,
-            complevel=self.COMP_LEVEL,
-            fill_value=NC_FILL_VALUES['i2']
-        )
-
-        attrs = {
-            'comment': 'Sequential segment number within a trajectory/deployment. A segment corresponds to the set of data collected between 2 gps fixes obtained when the glider surfaces.',  # NOQA
-            'long_name': 'Segment ID',
-            'valid_min': 1,
-            'valid_max': 999,
-            'observation_type': 'calculated',
-        }
-        for key, value in sorted(attrs.items()):
-            segment_var.setncattr(key, value)
-
-        segment_var[0] = segment_id
+        self.nc.variables['segment_id'][0] = segment_id
 
     def set_profile_ids(self, profile_ids):
         """ Sets Profile ID in NetCDF File
@@ -237,19 +218,18 @@ class GliderNetCDFWriter(object):
         """ Creates a variable that describes the glider
         """
 
-        platform = self.nc.createVariable('platform', 'i1')
-
         for key, value in sorted(platform_attrs.items()):
-            platform.setncattr(key, value)
+            self.nc.variables['platform'].setncattr(key, value)
 
     def set_instrument(self, name, attrs):
         """ Adds a description for a single instrument
         """
 
-        instrument = self.nc.createVariable(name, 'i1')
+        if name not in self.nc.variables:
+            self.nc.createVariable(name, 'i1')
 
         for key, value in sorted(attrs.items()):
-            instrument.setncattr(key, value)
+            self.nc.variables[name].setncattr(key, value)
 
     def set_instruments(self, instruments_array):
         """ Adds a list of instrument descriptions to the dataset

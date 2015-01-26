@@ -11,9 +11,12 @@
 import argparse
 
 from glider_binary_data_reader import (
-    open_glider_netcdf,
     GliderBDReader,
     MergedGliderBDReader
+)
+
+from glider_netcdf_writer import (
+    open_glider_netcdf
 )
 
 import sys
@@ -60,45 +63,47 @@ def main():
     if os.path.isfile(args.output_path):
         mode = 'a'
 
+    # Load in configurations
+    global_attrs = {}
+    deployment_attrs = {}
+    datatypes_attrs = {}
+    instruments_attrs = {}
+
+    # Load institute global attributes
+    global_attrs_path = (
+        os.path.join(args.glider_config_path, "global_attributes.json")
+    )
+    with open(global_attrs_path, 'r') as f:
+        global_attrs = json.load(f)
+
+    # Load deployment attributes (including global attributes)
+    deployment_attrs_path = (
+        os.path.join(args.glider_config_path, args.glider_name,
+                     "deployment.json")
+    )
+    with open(deployment_attrs_path, 'r') as f:
+        deployment_attrs = json.load(f)
+
+    # Load datatypes
+    datatypes_attrs_path = (
+        os.path.join(args.glider_config_path, "datatypes.json")
+    )
+    with open(datatypes_attrs_path, 'r') as f:
+        datatypes_attrs = json.load(f)
+
+    # Load instruments
+    instruments_attrs_path = (
+        os.path.join(args.glider_config_path, args.glider_name,
+                     "instruments.json")
+    )
+    with open(instruments_attrs_path, 'r') as f:
+        instruments_attrs = json.load(f)
+
+    # Fill in global attributes
+    global_attrs.update(deployment_attrs['global_attributes'])
+
     with open_glider_netcdf(args.output_path, mode) as glider_nc:
-        # Load in configurations
-        global_attrs = {}
-        deployment_attrs = {}
-        datatypes_attrs = {}
-        instruments_attrs = {}
-
-        # Load institute global attributes
-        global_attrs_path = (
-            os.path.join(args.glider_config_path, "global_attributes.json")
-        )
-        with open(global_attrs_path, 'r') as f:
-            global_attrs = json.load(f)
-
-        # Load deployment attributes (including global attributes)
-        deployment_attrs_path = (
-            os.path.join(args.glider_config_path, args.glider_name,
-                         "deployment.json")
-        )
-        with open(deployment_attrs_path, 'r') as f:
-            deployment_attrs = json.load(f)
-
-        # Load datatypes
-        datatypes_attrs_path = (
-            os.path.join(args.glider_config_path, "datatypes.json")
-        )
-        with open(datatypes_attrs_path, 'r') as f:
-            datatypes_attrs = json.load(f)
-
-        # Load instruments
-        instruments_attrs_path = (
-            os.path.join(args.glider_config_path, args.glider_name,
-                         "instruments.json")
-        )
-        with open(instruments_attrs_path, 'r') as f:
-            instruments_attrs = json.load(f)
-
-        # Fill in global attributes
-        global_attrs.update(deployment_attrs['global_attributes'])
+        # Set global attributes
         glider_nc.set_global_attributes(global_attrs)
 
         # Set Trajectory
@@ -122,6 +127,8 @@ def main():
             args.science
         )
         reader = MergedGliderBDReader(flight_reader, science_reader)
+        for line in reader:
+            glider_nc.insert_dict(line)
 
 
 if __name__ == '__main__':

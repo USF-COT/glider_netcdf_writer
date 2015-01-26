@@ -26,6 +26,12 @@
             }
         }
     },
+    "platform": {
+        "name": "platform",
+        "dimension": null,
+        "type": "i1",
+        "attrs": {}
+    },
     "profile_id": {
         "name": "profile_id",
         "dimension": null,
@@ -94,6 +100,18 @@
             "attrs": {
                 "long_name": "profile_lon Quality Flag"
             }
+        }
+    },
+    "segment_id": {
+        "name": "segment_id",
+        "dimension": null,
+        "type": "i2",
+        "attrs": {
+            "comment": "Sequential segment number within a trajectory/deployment. A segment corresponds to the set of data collected between 2 gps fixes obtained when the glider surfaces.",
+            "long_name": "Segment ID",
+            "valid_min": 1,
+            "valid_max": 999,
+            "observation_type": "calculated"
         }
     },
     "time_uv": {
