@@ -20,6 +20,9 @@ from datetime import datetime
 from os import path
 import json
 
+from glider_utils.gps import interpolate_gps
+from glider_utils.ctd import calculate_practical_salinity, calculate_density
+
 DEFAULT_GLIDER_BASE = path.join(path.dirname(__file__), "config")
 
 
@@ -126,6 +129,7 @@ class GliderNetCDFWriter(object):
 
         self.__update_bounds()
         self.__update_profile_vars()
+        self.__update_calculated()
 
         self.nc.close()
         self.nc = None
@@ -384,16 +388,18 @@ class GliderNetCDFWriter(object):
 
     def __find_min(self, dataset):
         min_val = sys.maxint
-        for value in dataset[~dataset.mask]:
-            if value < min_val:
+        for value in dataset:
+            if value != NC_FILL_VALUES['f8'] and \
+               value < min_val:
                 min_val = value
 
         return min_val
 
     def __find_max(self, dataset):
         max_val = -sys.maxint - 1
-        for value in dataset[~dataset.mask]:
-            if value > max_val:
+        for value in dataset:
+            if value != NC_FILL_VALUES['f8'] and \
+               value > max_val:
                 max_val = value
 
         return max_val
@@ -401,7 +407,7 @@ class GliderNetCDFWriter(object):
     def __find_avg(self, dataset):
         avg_sum = 0
         num_points = 0
-        for value in dataset[~dataset.mask]:
+        for value in dataset:
             avg_sum += value
             num_points += 1
 
@@ -416,18 +422,18 @@ class GliderNetCDFWriter(object):
         """
 
         if 'time' in self.nc.variables:
-            self.nc.variables['profile_time'][0] = min(
-                self.nc.variables['time']
+            self.nc.variables['profile_time'][0] = (
+                np.nanmin(self.nc.variables['time'][:])
             )
 
         if 'lon' in self.nc.variables:
             self.nc.variables['profile_lon'][0] = (
-                self.__find_avg(self.nc.variables['lon'][:])
+                np.average(self.nc.variables['lon'][:])
             )
 
         if 'lat' in self.nc.variables:
             self.nc.variables['profile_lat'][0] = (
-                self.__find_avg(self.nc.variables['lat'][:])
+                np.average(self.nc.variables['lat'][:])
             )
 
     def __update_bounds(self):
@@ -440,11 +446,11 @@ class GliderNetCDFWriter(object):
                 prefix = desc['global_bound']
                 self.nc.setncattr(
                     prefix + '_min',
-                    self.__find_min(self.nc.variables[desc['name']][:])
+                    np.nanmin(self.nc.variables[desc['name']][:])
                 )
                 self.nc.setncattr(
                     prefix + '_max',
-                    self.__find_max(self.nc.variables[desc['name']][:])
+                    np.nanmax(self.nc.variables[desc['name']][:])
                 )
                 self.nc.setncattr(
                     prefix + '_units',
@@ -462,3 +468,74 @@ class GliderNetCDFWriter(object):
                     prefix + '_precision',
                     desc['attrs']['precision']
                 )
+
+    def __update_salinity(self):
+        ctd_dataset = np.column_stack((
+            self.nc.variables["time"][:],
+            self.nc.variables["conductivity"][:],
+            self.nc.variables["temperature"][:],
+            self.nc.variables["pressure"][:]
+        ))
+        salinity_dataset = calculate_practical_salinity(ctd_dataset)
+
+        # Insert values
+        salinity = salinity_dataset[:, 4]
+        salinity[np.isnan(salinity)] = NC_FILL_VALUES['f8']
+        self.nc.variables["salinity"][:] = salinity
+
+        # Insert flags
+        qaqc = np.column_stack((
+            self.nc.variables["conductivity_qc"][:],
+            self.nc.variables["temperature_qc"][:],
+            self.nc.variables["pressure_qc"][:]
+        ))
+        self.nc.variables["salinity_qc"][:] = np.amin(qaqc, 1)
+
+        return salinity_dataset
+
+    def __interpolate_gps(self):
+        gps_dataset = np.column_stack((
+            self.nc.variables["time"][:],
+            self.nc.variables["lat"][:],
+            self.nc.variables["lon"][:]
+        ))
+        interp_gps = interpolate_gps(gps_dataset)
+
+        # Mark places where interpolated values will be
+        lat = self.nc.variables["lat"][:]
+        lon = self.nc.variables["lon"][:]
+        if(type(self.nc.variables["lat"][:]) is np.ma.core.MaskedArray):
+            self.nc.variables["lat_qc"][lat.mask] = 8  # Interpolate flag
+            self.nc.variables["lon_qc"][lon.mask] = 8  # Interpolate flag
+
+        # Insert values
+        self.nc.variables["lat"][:] = interp_gps[:, 1]
+        self.nc.variables["lon"][:] = interp_gps[:, 2]
+
+        return gps_dataset
+
+    def __calculate_density(self, salinity_dataset, gps_dataset):
+        print salinity_dataset
+        density_dataset = calculate_density(
+            salinity_dataset,
+            gps_dataset[:, 1],
+            gps_dataset[:, 2]
+        )
+        self.nc.variables["density"][:] = density_dataset[:, 9]
+        self.nc.variables["density_qc"][:] = (
+            self.nc.variables["salinity_qc"][:]
+        )
+
+    def __update_calculated(self):
+        """ Internal function that calculates salinity before closing a file
+        """
+
+        # Do not waste time with an empty dataset
+        if len(self.nc.variables["time"][:]) == 0:
+            return
+
+        salinity_dataset = self.__update_salinity()
+
+        gps_dataset = self.__interpolate_gps()
+
+        #self.__calculate_density(salinity_dataset, gps_dataset)

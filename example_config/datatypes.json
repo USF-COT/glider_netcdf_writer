@@ -85,34 +85,6 @@
         }
     },
     "m_gps_lat-lat": {
-        "name": "lat_fix",
-        "type": "f8",
-        "dimension": "time",
-        "global_bound": "geospatial_lat",
-        "attrs": {
-            "axis": "Y",
-            "units": "degrees_north",
-            "standard_name": "latitude fixes",
-            "long_name": "Latitude Surface Fixes",
-            "valid_min": -90,
-            "valid_max": 90,
-            "observation_type": "calculated",
-            "platform": "platform",
-            "comment": "No values are interpolated.  These are all from glider surfacing gps fixes.",
-            "sensor_name": " ",
-            "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
-            "accuracy": " ",
-            "precision": " ",
-            "resolution": " "
-        },
-        "status_flag": {
-            "attrs": {
-                "long_name": "gps lat Quality Flag"
-            }
-        }
-    },
-    "m_lat-lat": {
         "name": "lat",
         "type": "f8",
         "dimension": "time",
@@ -214,7 +186,7 @@
             }
         }
     },
-    "m_lon-lon": {
+    "m_gps_lon-lon": {
         "name": "lon",
         "type": "f8",
         "dimension": "time",
@@ -238,34 +210,6 @@
         "status_flag": {
             "attrs": {
                 "long_name": "lon dead reckoning Quality Flag"
-            }
-        }
-    },
-    "m_gps_lon-lon": {
-        "name": "lon_fix",
-        "type": "f8",
-        "dimension": "time",
-        "global_bound": "geospatial_lon",
-        "attrs": {
-            "axis": "X",
-            "units": "degrees_east",
-            "standard_name": "longitude fix",
-            "long_name": "Longitude Fix",
-            "valid_min": -180,
-            "valid_max": 180,
-            "observation_type": "measured",
-            "platform": "platform",
-            "comment": "No values are interpolated.  All are from glider surfacing gps fixes.",
-            "sensor_name": " ",
-            "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
-            "accuracy": " ",
-            "precision": " ",
-            "resolution": " "
-        },
-        "status_flag": {
-            "attrs": {
-                "long_name": "lon fix Quality Flag"
             }
         }
     },
