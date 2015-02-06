@@ -1,5 +1,5 @@
 {
-    "time": {
+    "timestamp": {
         "name": "time",
         "is_dimension": true,
         "dimension_length": null,

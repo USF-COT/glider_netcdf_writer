@@ -27,7 +27,7 @@
             }
         }
     },
-    "m_present_time-timestamp": {
+    "timestamp": {
         "is_time": true
     },
     "m_depth-m": {
@@ -113,33 +113,6 @@
         }
     },
     "m_lat-lat": {
-        "name": "lat_dr",
-        "type": "f8",
-        "dimension": "time",
-        "attrs": {
-            "axis": "Y",
-            "units": "degrees_north",
-            "standard_name": "latitude",
-            "long_name": "Latitude Dead Reckoning Calculated Position",
-            "valid_min": -90,
-            "valid_max": 90,
-            "observation_type": "calculated",
-            "platform": "platform",
-            "comment": "Teledyne calculated position output by the glider.",
-            "sensor_name": " ",
-            "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
-            "accuracy": " ",
-            "precision": " ",
-            "resolution": " "
-        },
-        "status_flag": {
-            "attrs": {
-                "long_name": "lat Quality Flag"
-            }
-        }
-    },
-    "lat-lat": {
         "name": "lat",
         "type": "f8",
         "dimension": "time",
@@ -147,12 +120,12 @@
             "axis": "Y",
             "units": "degrees_north",
             "standard_name": "latitude",
-            "long_name": "Latitude Linear Interpolation",
+            "long_name": "Latitude",
             "valid_min": -90,
             "valid_max": 90,
-            "observation_type": "calculated",
+            "observation_type": "measured",
             "platform": "platform",
-            "comment": "Latitude as a result of linear interpolation between surfacing fixes",
+            "comment": "Values may be interpolated between measured GPS fixes",
             "sensor_name": " ",
             "reference": "WGS84",
             "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
@@ -242,19 +215,19 @@
         }
     },
     "m_lon-lon": {
-        "name": "lon_dr",
+        "name": "lon",
         "type": "f8",
         "dimension": "time",
         "attrs": {
             "axis": "X",
             "units": "degrees_east",
-            "standard_name": "latitude",
-            "long_name": "Latitude Dead Reckoning Calculated Position",
+            "standard_name": "longitude",
+            "long_name": "Longitude",
             "valid_min": -180,
             "valid_max": 180,
             "observation_type": "calculated",
             "platform": "platform",
-            "comment": "Teledyne calculated position output by the glider.",
+            "comment": "Values may be interpolated between measured GPS fixes",
             "sensor_name": " ",
             "reference": "WGS84",
             "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
@@ -293,33 +266,6 @@
         "status_flag": {
             "attrs": {
                 "long_name": "lon fix Quality Flag"
-            }
-        }
-    },
-    "lon-lon": {
-        "name": "lon",
-        "type": "f8",
-        "dimension": "time",
-        "attrs": {
-            "axis": "X",
-            "units": "degrees_east",
-            "standard_name": "longitude",
-            "long_name": "Longitude",
-            "valid_min": -180,
-            "valid_max": 180,
-            "observation_type": "calculated",
-            "platform": "platform",
-            "comment": "Longitude as a result of linear interpolation between surfacing fixes",
-            "sensor_name": " ",
-            "reference": "WGS84",
-            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
-            "accuracy": " ",
-            "precision": " ",
-            "resolution": " "
-        },
-        "status_flag": {
-            "attrs": {
-                "long_name": "lon Quality Flag"
             }
         }
     },

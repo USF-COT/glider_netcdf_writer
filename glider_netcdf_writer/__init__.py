@@ -116,7 +116,7 @@ class GliderNetCDFWriter(object):
         self.__setup_base_variables()
 
         self.__update_history()
-        self.insert_index = 0
+        self.insert_index = len(self.nc.variables['time'])
 
         return self
 
@@ -125,6 +125,8 @@ class GliderNetCDFWriter(object):
         """
 
         self.__update_bounds()
+        self.__update_profile_vars()
+
         self.nc.close()
         self.nc = None
 
@@ -209,12 +211,12 @@ class GliderNetCDFWriter(object):
 
         self.nc.variables['segment_id'][0] = segment_id
 
-    def set_profile_ids(self, profile_ids):
+    def set_profile_id(self, profile_id):
         """ Sets Profile ID in NetCDF File
 
         """
 
-        self.nc.variables['profile_id'][0] = profile_ids
+        self.nc.variables['profile_id'][0] = profile_id
 
     def set_platform(self, platform_attrs):
         """ Creates a variable that describes the glider
@@ -249,9 +251,6 @@ class GliderNetCDFWriter(object):
             return
 
         # Skip variables that already exist
-        if 'name' not in desc:
-            print key
-
         if desc['name'] in self.nc.variables:
             return
 
@@ -314,12 +313,36 @@ class GliderNetCDFWriter(object):
         for key, desc in sorted(datatypes.items()):
             self.set_datatype(key, desc)
 
-    def fill_uv_vars(self, line):
-        self.nc.variables["time_uv"][0] = line["m_present_time-timestamp"]
-        self.nc.variables["lat_uv"][0] = line["m_gps_lat-lat"]
-        self.nc.variables["lon_uv"][0] = line["m_gps_lon-lon"]
+    def __single_insert_with_qaqc(self, line, qaqc_methods,
+                                  var_name, line_name):
+        self.nc.variables[var_name][0] = line[line_name]
+        qaqc_var_name = var_name + "_qc"
 
-    def insert_dict(self, line):
+        if var_name in qaqc_methods:
+            flag = qaqc_methods[var_name](line[line_name])
+        else:
+            flag = 0
+
+        if qaqc_var_name in self.nc.variables:
+            self.nc.variables[qaqc_var_name][0] = flag
+
+    def fill_uv_vars(self, line, qaqc_methods):
+        self.__single_insert_with_qaqc(
+            line, qaqc_methods,
+            "time_uv", "m_present_time-timestamp"
+        )
+
+        self.__single_insert_with_qaqc(
+            line, qaqc_methods,
+            "lat_uv", "m_gps_lat-lat"
+        )
+
+        self.__single_insert_with_qaqc(
+            line, qaqc_methods,
+            "lon_uv", "m_gps_lon-lon"
+        )
+
+    def insert_dict(self, line, qaqc_methods={}):
         """ Adds a data point glider_binary_data_reader library to NetCDF
 
         Input:
@@ -329,44 +352,86 @@ class GliderNetCDFWriter(object):
         """
 
         for name, desc in self.datatypes.items():
-            if desc['dimension'] == 'time':
-                if name in line:
-                    value = line[name]
+            if name in line:
+                value = NC_FILL_VALUES['f8']
+                flag = 0
+                qaqc_var = desc['name'] + '_qc'
+
+                # Get the value
+                value = line[name]
+
+                # Perform QAQC if possible
+                if qaqc_var in self.nc.variables:
+                    if name in qaqc_methods:
+                        flag = qaqc_methods[name](
+                            value,
+                            self.nc.variables[desc['name']][:]
+                        )
+
+                # Insert into series or single point
+                if desc['dimension'] == 'time':
+                    self.nc.variables[desc['name']][self.insert_index] = value
+                    if qaqc_var in self.nc.variables:
+                        self.nc.variables[qaqc_var][self.insert_index] = flag
                 else:
-                    value = NC_FILL_VALUES['f8']
-                self.nc.variables[desc['name']][self.insert_index] = value
-            else:
-                if name in line:
                     self.nc.variables[desc['name']][0] = line[name]
                     if name == "m_water_vx-m/s":
-                        self.fill_uv_vars(line)
+                        self.fill_uv_vars(line, qaqc_methods)
+                    if qaqc_var in self.nc.variables:
+                        self.nc.variables[qaqc_var][0] = flag
 
         self.insert_index += 1
 
     def __find_min(self, dataset):
         min_val = sys.maxint
-        for value in dataset:
-            if value == NC_FILL_VALUES['f8']:
-                continue
-            else:
-                if value < min_val:
-                    min_val = value
+        for value in dataset[~dataset.mask]:
+            if value < min_val:
+                min_val = value
 
         return min_val
 
     def __find_max(self, dataset):
         max_val = -sys.maxint - 1
-        for value in dataset:
-            if value == NC_FILL_VALUES['f8']:
-                continue
-            else:
-                if value > max_val:
-                    max_val = value
+        for value in dataset[~dataset.mask]:
+            if value > max_val:
+                max_val = value
 
         return max_val
 
+    def __find_avg(self, dataset):
+        avg_sum = 0
+        num_points = 0
+        for value in dataset[~dataset.mask]:
+            avg_sum += value
+            num_points += 1
+
+        if num_points == 0:
+            return NC_FILL_VALUES['f8']
+        else:
+            return avg_sum / num_points
+
+    def __update_profile_vars(self):
+        """ Internal function that updates all profile variables
+        before closing a file
+        """
+
+        if 'time' in self.nc.variables:
+            self.nc.variables['profile_time'][0] = min(
+                self.nc.variables['time']
+            )
+
+        if 'lon' in self.nc.variables:
+            self.nc.variables['profile_lon'][0] = (
+                self.__find_avg(self.nc.variables['lon'][:])
+            )
+
+        if 'lat' in self.nc.variables:
+            self.nc.variables['profile_lat'][0] = (
+                self.__find_avg(self.nc.variables['lat'][:])
+            )
+
     def __update_bounds(self):
-        """ Internal description that updates all global attribute bounds
+        """ Internal function that updates all global attribute bounds
         before closing a file.
         """
 
@@ -375,11 +440,11 @@ class GliderNetCDFWriter(object):
                 prefix = desc['global_bound']
                 self.nc.setncattr(
                     prefix + '_min',
-                    self.__find_min(self.nc.variables[desc['name']])
+                    self.__find_min(self.nc.variables[desc['name']][:])
                 )
                 self.nc.setncattr(
                     prefix + '_max',
-                    self.__find_max(self.nc.variables[desc['name']])
+                    self.__find_max(self.nc.variables[desc['name']][:])
                 )
                 self.nc.setncattr(
                     prefix + '_units',

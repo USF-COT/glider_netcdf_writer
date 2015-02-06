@@ -23,6 +23,59 @@ import sys
 import os
 import json
 
+from datetime import datetime
+
+import numpy as np
+from glider_utils.yo import find_yo_extrema
+
+
+def create_reader(args):
+    flight_reader = GliderBDReader(
+        args.flight
+    )
+    science_reader = GliderBDReader(
+        args.science
+    )
+    return MergedGliderBDReader(flight_reader, science_reader)
+
+
+def find_profiles(args):
+    profile_values = []
+    reader = create_reader(args)
+    for line in reader:
+        if args.depth in line:
+            profile_values.append([line[args.time], line[args.depth]])
+
+    profile_values = np.array(profile_values)
+    return find_yo_extrema(profile_values)
+
+
+def init_netcdf(file_path, global_attrs, deployment_attrs,
+                instruments_attrs, profile_id):
+    # Check if the output path already exists
+    mode = 'w'
+    if os.path.isfile(file_path):
+        mode = 'a'
+
+    with open_glider_netcdf(file_path, mode) as glider_nc:
+        # Set global attributes
+        glider_nc.set_global_attributes(global_attrs)
+
+        # Set Trajectory
+        glider_nc.set_trajectory_id(
+            deployment_attrs['glider'],
+            deployment_attrs['trajectory_date']
+        )
+
+        # Set Platform
+        glider_nc.set_platform(deployment_attrs['platform'])
+
+        # Set Instruments
+        glider_nc.set_instruments(instruments_attrs)
+
+        # Set Profile ID
+        glider_nc.set_profile_id(profile_id)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -47,6 +100,24 @@ def main():
     )
 
     parser.add_argument(
+        '-m', '--mode',
+        help="Set the mode for the file nameing convention (rt or delayed?)",
+        default="delayed"
+    )
+
+    parser.add_argument(
+        '-t', '--time',
+        help="Set time parameter to use for profile recognition",
+        default="timestamp"
+    )
+
+    parser.add_argument(
+        '-d', '--depth',
+        help="Set depth parameter to use for profile recognition",
+        default="m_depth-m"
+    )
+
+    parser.add_argument(
         '-f', '--flight', nargs='+',
         help="Set of flight data files to process."
     )
@@ -57,11 +128,6 @@ def main():
     )
 
     args = parser.parse_args()
-
-    # Check if the output path already exists
-    mode = 'w'
-    if os.path.isfile(args.output_path):
-        mode = 'a'
 
     # Load in configurations
     global_attrs = {}
@@ -102,36 +168,50 @@ def main():
     # Fill in global attributes
     global_attrs.update(deployment_attrs['global_attributes'])
 
-    with open_glider_netcdf(args.output_path, mode) as glider_nc:
-        # Set global attributes
-        glider_nc.set_global_attributes(global_attrs)
+    # Find profile breaks
+    profiles = find_profiles(args)
+    print "Profiles:\n %s" % profiles
 
-        # Set Trajectory
-        glider_nc.set_trajectory_id(
-            deployment_attrs['glider'],
-            deployment_attrs['trajectory_date']
-        )
+    # Create NetCDF Files for Each Profile
+    profile_id = 0
+    profile_end = 0
+    file_path = None
+    reader = create_reader(args)
+    for line in reader:
+        if profile_end < line['timestamp']:
+            begin_time = datetime.fromtimestamp(line['timestamp'])
+            filename = "%s_%s_%s.nc" % (
+                args.glider_name,
+                begin_time.isoformat(),
+                args.mode
+            )
+            file_path = os.path.join(
+                args.output_path,
+                filename
+            )
 
-        # Set Platform
-        glider_nc.set_platform(deployment_attrs['platform'])
+            profile = profiles[profiles[:, 2] == profile_id]
 
-        # Set Instruments
-        glider_nc.set_instruments(instruments_attrs)
+            init_netcdf(
+                file_path,
+                global_attrs,
+                deployment_attrs,
+                instruments_attrs,
+                profile_id + 1  # Store 1 based profile id
+            )
+            profile = profiles[profiles[:, 2] == profile_id]
+            profile_end = max(profile[:, 0])
 
-        # Set Datatypes
-        glider_nc.set_datatypes(datatypes_attrs)
+        with open_glider_netcdf(file_path, 'a') as glider_nc:
+            glider_nc.set_datatypes(datatypes_attrs)
+            while line['timestamp'] <= profile_end:
+                glider_nc.insert_dict(line)
+                try:
+                    line = reader.next()
+                except StopIteration:
+                    break
 
-        # Read binary data files
-        # Create binary data readers
-        flight_reader = GliderBDReader(
-            args.flight
-        )
-        science_reader = GliderBDReader(
-            args.science
-        )
-        reader = MergedGliderBDReader(flight_reader, science_reader)
-        for line in reader:
-            glider_nc.insert_dict(line)
+        profile_id += 1
 
 
 if __name__ == '__main__':

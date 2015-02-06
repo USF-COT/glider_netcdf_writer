@@ -85,7 +85,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
 
     def test_profile_ids(self):
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
-            glider_nc.set_profile_ids(4)
+            glider_nc.set_profile_id(4)
             nc = glider_nc.nc
             self.assertEqual(nc.variables['profile_id'].getValue(), 4)
 
