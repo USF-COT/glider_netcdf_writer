@@ -4,11 +4,14 @@ A library for creating NetCDF files for Teledyne Slocum Glider datasets.
 
 ## Dependencies
 
+* [NumPy and SciPy](http://www.scipy.org/install.html)
+* [Gibbs Seawater Oceanographic Package](https://pypi.python.org/pypi/gsw/)
 * [Glider Binary Data Reader](https://github.com/USF-COT/glider_binary_data_reader)
+* [Glider Utils](https://github.com/USF-COT/glider_utils)
 
 ## Installation
 
-1. Install [glider_binary_data_reader library](https://github.com/USF-COT/glider_binary_data_reader#installation)
+1. Install dependencies (see above)
 2. git clone https://github.com/USF-COT/glider_netcdf_writer
 3. cd glider_netcdf_writer
 4. sudo python setup.py install
