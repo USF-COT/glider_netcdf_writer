@@ -515,6 +515,8 @@ class GliderNetCDFWriter(object):
             np.array(self.nc.variables["lat"][:]),
             np.array(self.nc.variables["lon"][:])
         )
+
+        density[np.isnan(density)] = NC_FILL_VALUES['f8']
         self.nc.variables["density"][:] = density
         self.nc.variables["density_qc"][:] = (
             self.nc.variables["salinity_qc"][:]
