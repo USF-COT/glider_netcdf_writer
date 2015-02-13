@@ -129,7 +129,6 @@ class GliderNetCDFWriter(object):
 
         self.__update_bounds()
         self.__update_profile_vars()
-        self.__update_calculated()
 
         self.nc.close()
         self.nc = None
@@ -470,16 +469,14 @@ class GliderNetCDFWriter(object):
                 )
 
     def __update_salinity(self):
-        ctd_dataset = np.column_stack((
-            self.nc.variables["time"][:],
-            self.nc.variables["conductivity"][:],
-            self.nc.variables["temperature"][:],
-            self.nc.variables["pressure"][:]
-        ))
-        salinity_dataset = calculate_practical_salinity(ctd_dataset)
+        salinity = calculate_practical_salinity(
+            np.array(self.nc.variables["time"][:]),
+            np.array(self.nc.variables["conductivity"][:]),
+            np.array(self.nc.variables["temperature"][:]),
+            np.array(self.nc.variables["pressure"][:])
+        )
 
         # Insert values
-        salinity = salinity_dataset[:, 4]
         salinity[np.isnan(salinity)] = NC_FILL_VALUES['f8']
         self.nc.variables["salinity"][:] = salinity
 
@@ -491,15 +488,12 @@ class GliderNetCDFWriter(object):
         ))
         self.nc.variables["salinity_qc"][:] = np.amin(qaqc, 1)
 
-        return salinity_dataset
-
     def __interpolate_gps(self):
-        gps_dataset = np.column_stack((
-            self.nc.variables["time"][:],
-            self.nc.variables["lat"][:],
-            self.nc.variables["lon"][:]
-        ))
-        interp_gps = interpolate_gps(gps_dataset)
+        interp_lat, interp_lon = interpolate_gps(
+            np.array(self.nc.variables["time"][:]),
+            np.array(self.nc.variables["lat"][:]),
+            np.array(self.nc.variables["lon"][:])
+        )
 
         # Mark places where interpolated values will be
         lat = self.nc.variables["lat"][:]
@@ -509,33 +503,27 @@ class GliderNetCDFWriter(object):
             self.nc.variables["lon_qc"][lon.mask] = 8  # Interpolate flag
 
         # Insert values
-        self.nc.variables["lat"][:] = interp_gps[:, 1]
-        self.nc.variables["lon"][:] = interp_gps[:, 2]
+        self.nc.variables["lat"][:] = interp_lat
+        self.nc.variables["lon"][:] = interp_lon
 
-        return gps_dataset
-
-    def __calculate_density(self, salinity_dataset, gps_dataset):
-        print salinity_dataset
-        density_dataset = calculate_density(
-            salinity_dataset,
-            gps_dataset[:, 1],
-            gps_dataset[:, 2]
+    def __calculate_density(self):
+        density = calculate_density(
+            np.array(self.nc.variables["time"][:]),
+            np.array(self.nc.variables["temperature"][:]),
+            np.array(self.nc.variables["pressure"][:]),
+            np.array(self.nc.variables["salinity"][:]),
+            np.array(self.nc.variables["lat"][:]),
+            np.array(self.nc.variables["lon"][:])
         )
-        self.nc.variables["density"][:] = density_dataset[:, 9]
+        self.nc.variables["density"][:] = density
         self.nc.variables["density_qc"][:] = (
             self.nc.variables["salinity_qc"][:]
         )
 
-    def __update_calculated(self):
+    def update_calculated(self):
         """ Internal function that calculates salinity before closing a file
         """
 
-        # Do not waste time with an empty dataset
-        if len(self.nc.variables["time"][:]) == 0:
-            return
-
-        salinity_dataset = self.__update_salinity()
-
-        gps_dataset = self.__interpolate_gps()
-
-        #self.__calculate_density(salinity_dataset, gps_dataset)
+        self.__update_salinity()
+        self.__interpolate_gps()
+        self.__calculate_density()

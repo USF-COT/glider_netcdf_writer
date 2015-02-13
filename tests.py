@@ -123,6 +123,7 @@ class TestMergedGliderDataReader(unittest.TestCase):
             glider_nc.set_datatypes(self.datatypes)
             for line in reader:
                 glider_nc.insert_dict(line)
+            glider_nc.update_calculated()
 
 
 if __name__ == '__main__':

@@ -27,6 +27,7 @@ from datetime import datetime
 
 import numpy as np
 from glider_utils.yo import find_yo_extrema
+from glider_utils.yo.filters import default_filter
 
 
 def create_reader(args):
@@ -47,7 +48,8 @@ def find_profiles(args):
             profile_values.append([line[args.time], line[args.depth]])
 
     profile_values = np.array(profile_values)
-    return find_yo_extrema(profile_values)
+    profile_dataset = find_yo_extrema(profile_values)
+    return default_filter(profile_dataset)
 
 
 def init_netcdf(file_path, global_attrs, deployment_attrs,
