@@ -30,25 +30,27 @@ from glider_utils.yo import find_yo_extrema
 from glider_utils.yo.filters import default_filter
 
 
-def create_reader(args):
+def create_reader(flight_paths, science_paths):
     flight_reader = GliderBDReader(
-        args.flight
+        flight_paths
     )
     science_reader = GliderBDReader(
-        args.science
+        science_paths
     )
     return MergedGliderBDReader(flight_reader, science_reader)
 
 
 def find_profiles(args):
     profile_values = []
-    reader = create_reader(args)
+    reader = create_reader(args.flight, args.science)
     for line in reader:
         if args.depth in line:
             profile_values.append([line[args.time], line[args.depth]])
 
     profile_values = np.array(profile_values)
-    profile_dataset = find_yo_extrema(profile_values)
+    profile_dataset = find_yo_extrema(
+        profile_values[:, 0], profile_values[:, 1]
+    )
     return default_filter(profile_dataset)
 
 
@@ -79,7 +81,7 @@ def init_netcdf(file_path, global_attrs, deployment_attrs,
         glider_nc.set_profile_id(profile_id)
 
 
-def main():
+def read_args():
     parser = argparse.ArgumentParser(
         description='Parses a set of glider binary data files to a '
                     'single NetCDF file according to configurations '
@@ -129,46 +131,53 @@ def main():
         help="Set of science data files to process."
     )
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def read_attrs(glider_config_path, glider_name):
     # Load in configurations
-    global_attrs = {}
-    deployment_attrs = {}
-    datatypes_attrs = {}
-    instruments_attrs = {}
+    attrs = {}
 
     # Load institute global attributes
     global_attrs_path = (
-        os.path.join(args.glider_config_path, "global_attributes.json")
+        os.path.join(glider_config_path, "global_attributes.json")
     )
     with open(global_attrs_path, 'r') as f:
-        global_attrs = json.load(f)
+        attrs['global'] = json.load(f)
 
     # Load deployment attributes (including global attributes)
     deployment_attrs_path = (
-        os.path.join(args.glider_config_path, args.glider_name,
+        os.path.join(glider_config_path, glider_name,
                      "deployment.json")
     )
     with open(deployment_attrs_path, 'r') as f:
-        deployment_attrs = json.load(f)
+        attrs['deployment'] = json.load(f)
 
     # Load datatypes
     datatypes_attrs_path = (
-        os.path.join(args.glider_config_path, "datatypes.json")
+        os.path.join(glider_config_path, "datatypes.json")
     )
     with open(datatypes_attrs_path, 'r') as f:
-        datatypes_attrs = json.load(f)
+        attrs['datatypes'] = json.load(f)
 
     # Load instruments
     instruments_attrs_path = (
-        os.path.join(args.glider_config_path, args.glider_name,
+        os.path.join(glider_config_path, glider_name,
                      "instruments.json")
     )
     with open(instruments_attrs_path, 'r') as f:
-        instruments_attrs = json.load(f)
+        attrs['instruments'] = json.load(f)
 
     # Fill in global attributes
-    global_attrs.update(deployment_attrs['global_attributes'])
+    attrs['global'].update(attrs['deployment']['global_attributes'])
+
+    return attrs
+
+
+def main():
+    args = read_args()
+    print args
+    attrs = read_attrs(args.glider_config_path, args.glider_name)
 
     # Find profile breaks
     profiles = find_profiles(args)
@@ -178,9 +187,10 @@ def main():
     profile_id = 0
     profile_end = 0
     file_path = None
-    reader = create_reader(args)
+    reader = create_reader(args.flight, args.science)
     for line in reader:
         if profile_end < line['timestamp']:
+            # Open new NetCDF
             begin_time = datetime.fromtimestamp(line['timestamp'])
             filename = "%s_%s_%s.nc" % (
                 args.glider_name,
@@ -196,22 +206,24 @@ def main():
 
             init_netcdf(
                 file_path,
-                global_attrs,
-                deployment_attrs,
-                instruments_attrs,
+                attrs['global'],
+                attrs['deployment'],
+                attrs['instruments'],
                 profile_id + 1  # Store 1 based profile id
             )
             profile = profiles[profiles[:, 2] == profile_id]
             profile_end = max(profile[:, 0])
 
         with open_glider_netcdf(file_path, 'a') as glider_nc:
-            glider_nc.set_datatypes(datatypes_attrs)
+            glider_nc.set_datatypes(attrs['datatypes'])
             while line['timestamp'] <= profile_end:
                 glider_nc.insert_dict(line)
                 try:
                     line = reader.next()
                 except StopIteration:
                     break
+
+            glider_nc.update_calculated()
 
         profile_id += 1
 
