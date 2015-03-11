@@ -20,6 +20,8 @@ from datetime import datetime
 from os import path
 import json
 
+from glider_utils.ctd import calculate_practical_salinity, calculate_density
+
 
 DEFAULT_GLIDER_BASE = path.join(path.dirname(__file__), "config")
 
@@ -414,70 +416,40 @@ class GliderNetCDFWriter(object):
 
         self.stream_index += 1
 
-    def __find_min(self, dataset):
-        min_val = sys.maxint
-        for value in dataset:
-            if value != NC_FILL_VALUES['f8'] and \
-               value < min_val:
-                min_val = value
-
-        return min_val
-
-    def __find_max(self, dataset):
-        max_val = -sys.maxint - 1
-        for value in dataset:
-            if value != NC_FILL_VALUES['f8'] and \
-               value > max_val:
-                max_val = value
-
-        return max_val
-
-    def __find_avg(self, dataset):
-        avg_sum = 0
-        num_points = 0
-        for value in dataset:
-            avg_sum += value
-            num_points += 1
-
-        if num_points == 0:
-            return NC_FILL_VALUES['f8']
-        else:
-            return avg_sum / num_points
-
     def __netcdf_to_np_op(self, variable_data, operation):
         array = np.array(variable_data)
         array[array == NC_FILL_VALUES['f8']] = float('nan')
 
-        return operation(array)
+        result = operation(array)
+        if result == np.nan:
+            result = NC_FILL_VALUES['f8']
+        return result
 
-    def __update_profile_vars(self):
+    def update_profile_vars(self):
         """ Internal function that updates all profile variables
         before closing a file
         """
 
         if 'time' in self.nc.variables:
-            self.nc.variables['profile_time'].assignValue(
-                self.__netcdf_to_np_op(
-                    self.nc.variables['time'][:],
-                    np.nanmin
-                )
+            profile_time = self.__netcdf_to_np_op(
+                self.nc.variables['time'][:],
+                np.nanmin
             )
+            self.set_scalar('profile_time', profile_time)
 
         if 'lon' in self.nc.variables:
-            self.nc.variables['profile_lon'].assignValue(
-                self.__netcdf_to_np_op(
-                    self.nc.variables['lon'][:],
-                    np.average
-                )
+            profile_lon = self.__netcdf_to_np_op(
+                self.nc.variables['lon'][:],
+                np.average
             )
+            self.set_scalar('profile_lon', profile_lon)
 
         if 'lat' in self.nc.variables:
-            self.nc.variables['profile_lat'].assignValue(
-                self.__netcdf_to_np_op(
-                    self.nc.variables['lat'][:],
-                    np.average
-                )
+            profile_lat = self.__netcdf_to_np_op(
+                self.nc.variables['lat'][:],
+                np.average
             )
+            self.set_scalar('profile_lat', profile_lat)
 
     def update_bounds(self):
         """ Internal function that updates all global attribute bounds
@@ -490,11 +462,17 @@ class GliderNetCDFWriter(object):
                 dataset = self.nc.variables[desc['name']][:]
                 self.nc.setncattr(
                     prefix + '_min',
-                    self.__find_min(dataset)
+                    self.__netcdf_to_np_op(
+                        dataset,
+                        np.nanmin
+                    )
                 )
                 self.nc.setncattr(
                     prefix + '_max',
-                    self.__find_max(dataset)
+                    self.__netcdf_to_np_op(
+                        dataset,
+                        np.nanmax
+                    )
                 )
                 self.nc.setncattr(
                     prefix + '_units',
@@ -512,3 +490,48 @@ class GliderNetCDFWriter(object):
                     prefix + '_precision',
                     desc['attrs']['precision']
                 )
+
+    def calculate_salinity(self):
+        if self.__get_time_len() == 0:
+            raise TypeError('Cannot calculate salinity: time array empty')
+
+        required_params = ('time', 'conductivity', 'temperature', 'pressure')
+        for param in required_params:
+            if param not in self.nc.variables:
+                raise TypeError('Cannot calculate salinity: '
+                                'missing %s' % param)
+
+        salinity = calculate_practical_salinity(
+            np.array(self.nc.variables["time"][:]),
+            np.array(self.nc.variables["conductivity"][:]),
+            np.array(self.nc.variables["temperature"][:]),
+            np.array(self.nc.variables["pressure"][:])
+        )
+
+        salinity[np.isnan(salinity)] = NC_FILL_VALUES['f8']
+        self.set_array('salinity-psu', salinity)
+
+    def calculate_density(self):
+        if self.__get_time_len() == 0:
+            raise TypeError('Cannot calculate salinity: time array empty')
+
+        required_params = (
+            'time', 'conductivity', 'temperature', 'pressure',
+            'salinity', 'lat', 'lon'
+        )
+        for param in required_params:
+            if param not in self.nc.variables:
+                raise TypeError('Cannot calculate salinity: '
+                                'missing %s' % param)
+
+        density = calculate_density(
+            np.array(self.nc.variables["time"][:]),
+            np.array(self.nc.variables["temperature"][:]),
+            np.array(self.nc.variables["pressure"][:]),
+            np.array(self.nc.variables["salinity"][:]),
+            np.array(self.nc.variables["lat"][:]),
+            np.array(self.nc.variables["lon"][:])
+        )
+
+        density[np.isnan(density)] = NC_FILL_VALUES['f8']
+        self.set_array('density-kg/m^3', density)

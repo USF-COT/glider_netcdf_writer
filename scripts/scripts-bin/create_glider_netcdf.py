@@ -265,6 +265,13 @@ def main():
                 except StopIteration:
                     break
 
+            glider_nc.update_profile_vars()
+            try:
+                glider_nc.calculate_salinity()
+                glider_nc.calculate_density()
+            except Exception, ex:
+                print ex
+
         profile_id += 1
 
 
