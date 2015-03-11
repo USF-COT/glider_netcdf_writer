@@ -28,6 +28,7 @@ from datetime import datetime
 import numpy as np
 from glider_utils.yo import find_yo_extrema
 from glider_utils.yo.filters import default_filter
+from glider_utils.gps import interpolate_gps
 
 
 def create_reader(flight_paths, science_paths):
@@ -52,6 +53,38 @@ def find_profiles(args):
         profile_values[:, 0], profile_values[:, 1]
     )
     return default_filter(profile_dataset)
+
+
+def get_file_set_gps(args):
+    gps_values = []
+    reader = create_reader(args.flight, args.science)
+    lat_name = args.gps + 'lat-lat'
+    lon_name = args.gps + 'lon-lon'
+    for line in reader:
+        if lat_name in line:
+            gps_values.append(
+                [line[args.time], line[lat_name], line[lon_name]]
+            )
+        else:
+            gps_values.append([line[args.time], np.nan, np.nan])
+
+    gps_values = np.array(gps_values)
+    gps_values[:, 1], gps_values[:, 2] = interpolate_gps(
+        gps_values[:, 0], gps_values[:, 1], gps_values[:, 2]
+    )
+
+    return gps_values
+
+
+def fill_gps(args, line, interp_gps):
+    lat_name = args.gps + 'lat-lat'
+    lon_name = args.gps + 'lon-lon'
+    if lat_name not in line:
+        timestamp = line[args.time]
+        line[lat_name] = interp_gps[interp_gps[:, 0] == timestamp, 1][0]
+        line[lon_name] = interp_gps[interp_gps[:, 0] == timestamp, 2][0]
+
+    return line
 
 
 def init_netcdf(file_path, global_attrs, deployment_attrs,
@@ -122,6 +155,12 @@ def read_args():
     )
 
     parser.add_argument(
+        '-g', '--gps',
+        help="Set prefix for gps parameters to use for location estimation",
+        default="m_gps_"
+    )
+
+    parser.add_argument(
         '-f', '--flight', nargs='+',
         help="Set of flight data files to process."
     )
@@ -183,6 +222,9 @@ def main():
     profiles = find_profiles(args)
     print "Profiles:\n %s" % profiles
 
+    # Interpolate GPS
+    interp_gps = get_file_set_gps(args)
+
     # Create NetCDF Files for Each Profile
     profile_id = 0
     profile_end = 0
@@ -215,15 +257,13 @@ def main():
             profile_end = max(profile[:, 0])
 
         with open_glider_netcdf(file_path, 'a') as glider_nc:
-            glider_nc.set_datatypes(attrs['datatypes'])
             while line['timestamp'] <= profile_end:
-                glider_nc.insert_dict(line)
+                line = fill_gps(args, line, interp_gps)
+                glider_nc.stream_dict_insert(line)
                 try:
                     line = reader.next()
                 except StopIteration:
                     break
-
-            glider_nc.update_calculated()
 
         profile_id += 1
 

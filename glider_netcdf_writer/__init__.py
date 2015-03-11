@@ -20,10 +20,19 @@ from datetime import datetime
 from os import path
 import json
 
-from glider_utils.gps import interpolate_gps
-from glider_utils.ctd import calculate_practical_salinity, calculate_density
 
 DEFAULT_GLIDER_BASE = path.join(path.dirname(__file__), "config")
+
+GLIDER_QC = {
+    "no_qc_performed": 0,
+    "good_data": 1,
+    "probably_good_data": 2,
+    "bad_data_that_are_potentially_correctable": 3,
+    "bad_data": 4,
+    "value_changed": 5,
+    "interpolated_value": 8,
+    "missing_value": 9
+}
 
 
 def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1,
@@ -63,29 +72,28 @@ class GliderNetCDFWriter(object):
         # Create array of unsigned 8-bit integers to use for _qc flag values
         self.QC_FLAGS = np.array(range(0, 10), 'int8')
         # Meanings of QC_FLAGS
-        self.QC_FLAG_MEANINGS = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correc  table bad_data value_changed not_used not_used interpolated_value missing_value"  # NOQA
+        self.QC_FLAG_MEANINGS = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value"  # NOQA
 
-    def __setup_base_variables(self):
-        """ Internal function to setup base variables
+        self.qaqc_methods = {}
+
+    def __load_datatypes(self):
+        """ Internal function to setup known datatypes
 
             Adds variables from base_variables.json
         """
 
-        base_path = path.join(
+        datatypes_path = path.join(
             self.config_path,
-            'base_variables.json'
+            'datatypes.json'
         )
 
-        with open(base_path, 'r') as f:
+        with open(datatypes_path, 'r') as f:
             contents = f.read()
-        base_var_config = json.loads(contents)
-
-        for key, desc in base_var_config.items():
-            self.set_datatype(key, desc)
+        self.datatypes = json.loads(contents)
 
     def __update_history(self):
         """ Updates the history, date_created, date_modified
-        and date_issued variables
+        and date_issued file attributes
         """
 
         # Get timestamp for this access
@@ -104,6 +112,12 @@ class GliderNetCDFWriter(object):
         self.nc.setncattr("date_modified", time_string)
         self.nc.setncattr("date_issued", time_string)
 
+    def __get_time_len(self):
+        if 'time' in self.nc.variables:
+            return len(self.nc.variables['time'])
+        else:
+            return 0
+
     def __enter__(self):
         """ Opens the NetCDF file. Sets up QAQC and time variables.
         Updates global history variables.
@@ -116,10 +130,10 @@ class GliderNetCDFWriter(object):
         )
 
         self.__setup_qaqc()
-        self.__setup_base_variables()
+        self.__load_datatypes()
 
         self.__update_history()
-        self.insert_index = len(self.nc.variables['time'])
+        self.stream_index = self.__get_time_len()
 
         return self
 
@@ -127,9 +141,8 @@ class GliderNetCDFWriter(object):
         """ Updates bounds and closes file.  Called at end of "with" block
         """
 
-        if len(self.nc.variables['time']) > 0:
-            self.__update_bounds()
-            self.__update_profile_vars()
+        if self.__get_time_len() > 0:
+            self.update_bounds()
 
         self.nc.close()
         self.nc = None
@@ -203,60 +216,23 @@ class GliderNetCDFWriter(object):
 
         trajectory_var[:] = stringtoarr(traj_str, len(traj_str))
 
-    def set_segment_id(self, segment_id):
-        """ Sets the segment ID as a variable
+    def check_datatype_exists(self, key):
+        if key not in self.datatypes:
+            raise KeyError('Unknown datatype %s cannot '
+                           'be inserted to NetCDF' % key)
 
-        SEGMENT_ID
-        segment_id: 2 byte integer
-        kerfoot@marine.rutgers.edu: explicitly specify fill_value when creating
-        variable so that it shows up as a variable attribute.  Use the default
-        fill_value based on the data type
-        """
+        datatype = self.datatypes[key]
+        if datatype['name'] not in self.nc.variables:
+            self.set_datatype(key, datatype)
 
-        self.nc.variables['segment_id'][0] = segment_id
+        return datatype
 
-    def set_profile_id(self, profile_id):
-        """ Sets Profile ID in NetCDF File
-
-        """
-
-        self.nc.variables['profile_id'][0] = profile_id
-
-    def set_platform(self, platform_attrs):
-        """ Creates a variable that describes the glider
-        """
-
-        for key, value in sorted(platform_attrs.items()):
-            self.nc.variables['platform'].setncattr(key, value)
-
-    def set_instrument(self, name, attrs):
-        """ Adds a description for a single instrument
-        """
-
-        if name not in self.nc.variables:
-            self.nc.createVariable(name, 'i1')
-
-        for key, value in sorted(attrs.items()):
-            self.nc.variables[name].setncattr(key, value)
-
-    def set_instruments(self, instruments_array):
-        """ Adds a list of instrument descriptions to the dataset
-        """
-
-        for description in instruments_array:
-            self.set_instrument(description['name'], description['attrs'])
+    def get_status_flag_name(self, name):
+        return name + "_qc"
 
     def set_datatype(self, key, desc):
         """ Sets up a datatype description for the dataset
         """
-
-        # Skip timestamp variable, will be stored in time dimension
-        if 'is_time' in desc and desc['is_time']:
-            return
-
-        # Skip variables that already exist
-        if desc['name'] in self.nc.variables:
-            return
 
         if 'is_dimension' in desc and desc['is_dimension']:
             self.nc.createDimension(desc['name'], desc['dimension_length'])
@@ -266,8 +242,6 @@ class GliderNetCDFWriter(object):
 
         if desc['name'] in self.nc.variables:
             return  # This variable already exists
-
-        self.datatypes[key] = desc
 
         if desc['dimension'] is None:
             dimension = ()
@@ -288,7 +262,7 @@ class GliderNetCDFWriter(object):
 
         if 'status_flag' in desc:
             status_flag = desc['status_flag']
-            status_flag_name = desc['name'] + "_qc"
+            status_flag_name = self.get_status_flag_name(desc['name'])
             datatype.setncattr('ancillary_variables', status_flag_name)
             status_flag_var = self.nc.createVariable(
                 status_flag_name,
@@ -310,43 +284,102 @@ class GliderNetCDFWriter(object):
             for key, value in sorted(status_flag['attrs'].items()):
                 status_flag_var.setncattr(key, value)
 
-    def set_datatypes(self, datatypes):
-        """ Sets an array of datatype descriptions in the dataset
+    def perform_qaqc(self, key, value):
+        if key in self.qaqc_methods:
+            flag = self.qaqc_methods[key](value)
+        elif value == NC_FILL_VALUES['f8']:
+            flag = GLIDER_QC["missing_value"]
+        else:
+            flag = GLIDER_QC['no_qc_performed']
+
+        return flag
+
+    def set_scalar(self, key, value=None):
+        datatype = self.check_datatype_exists(key)
+
+        if value is None:
+            value = NC_FILL_VALUES[datatype['type']]
+
+        self.nc.variables[datatype['name']].assignValue(value)
+
+        if "status_flag" in datatype:
+            status_flag_name = self.get_status_flag_name(datatype['name'])
+            flag = self.perform_qaqc(key, value)
+            self.nc.variables[status_flag_name].assignValue(flag)
+
+    def set_array_value(self, key, index, value=None):
+        datatype = self.check_datatype_exists(key)
+
+        if value is None:
+            value = NC_FILL_VALUES[datatype['type']]
+
+        self.nc.variables[datatype['name']][index] = value
+
+        if "status_flag" in datatype:
+            status_flag_name = self.get_status_flag_name(datatype['name'])
+            flag = self.perform_qaqc(key, value)
+            self.nc.variables[status_flag_name][index] = flag
+
+    def set_array(self, key, values):
+        datatype = self.check_datatype_exists(key)
+
+        self.nc.variables[datatype['name']][:] = values
+        if "status_flag" in datatype:
+            status_flag_name = self.get_status_flag_name(datatype['name'])
+            for i, value in enumerate(values):
+                flag = self.perform_qaqc(key, value)
+                self.nc.variables[status_flag_name][i] = flag
+
+    def set_segment_id(self, segment_id):
+        """ Sets the segment ID as a variable
+
+        SEGMENT_ID
+        segment_id: 2 byte integer
+        kerfoot@marine.rutgers.edu: explicitly specify fill_value when creating
+        variable so that it shows up as a variable attribute.  Use the default
+        fill_value based on the data type
         """
 
-        for key, desc in sorted(datatypes.items()):
-            self.set_datatype(key, desc)
+        self.set_scalar('segment_id', segment_id)
 
-    def __single_insert_with_qaqc(self, line, qaqc_methods,
-                                  var_name, line_name):
-        self.nc.variables[var_name][0] = line[line_name]
-        qaqc_var_name = var_name + "_qc"
+    def set_profile_id(self, profile_id):
+        """ Sets Profile ID in NetCDF File
 
-        if var_name in qaqc_methods:
-            flag = qaqc_methods[var_name](line[line_name])
-        else:
-            flag = 0
+        """
 
-        if qaqc_var_name in self.nc.variables:
-            self.nc.variables[qaqc_var_name][0] = flag
+        self.set_scalar('profile_id', profile_id)
 
-    def fill_uv_vars(self, line, qaqc_methods):
-        self.__single_insert_with_qaqc(
-            line, qaqc_methods,
-            "time_uv", "m_present_time-timestamp"
-        )
+    def set_platform(self, platform_attrs):
+        """ Creates a variable that describes the glider
+        """
 
-        self.__single_insert_with_qaqc(
-            line, qaqc_methods,
-            "lat_uv", "m_gps_lat-lat"
-        )
+        self.set_scalar('platform')
+        for key, value in sorted(platform_attrs.items()):
+            self.nc.variables['platform'].setncattr(key, value)
 
-        self.__single_insert_with_qaqc(
-            line, qaqc_methods,
-            "lon_uv", "m_gps_lon-lon"
-        )
+    def set_instrument(self, name, attrs):
+        """ Adds a description for a single instrument
+        """
 
-    def insert_dict(self, line, qaqc_methods={}):
+        if name not in self.nc.variables:
+            self.nc.createVariable(name, 'i1')
+
+        for key, value in sorted(attrs.items()):
+            self.nc.variables[name].setncattr(key, value)
+
+    def set_instruments(self, instruments_array):
+        """ Adds a list of instrument descriptions to the dataset
+        """
+
+        for description in instruments_array:
+            self.set_instrument(description['name'], description['attrs'])
+
+    def fill_uv_vars(self, line):
+        self.set_scalar('time_uv', line['m_present_time-timestamp'])
+        self.set_scalar('lat_uv', line['m_gps_lat-lat'])
+        self.set_scalar('lon_uv', line['m_gps_lon-lon'])
+
+    def stream_dict_insert(self, line, qaqc_methods={}):
         """ Adds a data point glider_binary_data_reader library to NetCDF
 
         Input:
@@ -355,36 +388,31 @@ class GliderNetCDFWriter(object):
                 in the datatypes.json file.
         """
 
-        for name, desc in self.datatypes.items():
-            if name in line:
-                value = NC_FILL_VALUES['f8']
-                flag = 0
-                qaqc_var = desc['name'] + '_qc'
+        if 'timestamp' not in line:
+            print line
+            raise ValueError('No timestamp found for line')
 
-                # Get the value
-                value = line[name]
+        self.set_array_value('timestamp', self.stream_index, line['timestamp'])
 
-                # Perform QAQC if possible
-                if qaqc_var in self.nc.variables:
-                    if name in qaqc_methods:
-                        flag = qaqc_methods[name](
-                            value,
-                            self.nc.variables[desc['name']][:]
-                        )
+        for name, value in line.items():
+            if name == 'timestamp':
+                continue  # Skip timestamp, inserted above
 
-                # Insert into series or single point
-                if desc['dimension'] == 'time':
-                    self.nc.variables[desc['name']][self.insert_index] = value
-                    if qaqc_var in self.nc.variables:
-                        self.nc.variables[qaqc_var][self.insert_index] = flag
-                else:
-                    self.nc.variables[desc['name']][0] = line[name]
-                    if name == "m_water_vx-m/s":
-                        self.fill_uv_vars(line, qaqc_methods)
-                    if qaqc_var in self.nc.variables:
-                        self.nc.variables[qaqc_var][0] = flag
+            try:
+                datatype = self.check_datatype_exists(name)
+            except KeyError, e:
+                print e
+                continue
 
-        self.insert_index += 1
+            datatype = self.datatypes[name]
+            if datatype['dimension'] == 'time':
+                self.set_array_value(name, self.stream_index, value)
+            else:
+                self.set_scalar(name, value)
+                if name == "m_water_vx-m/s":
+                    self.fill_uv_vars(line)
+
+        self.stream_index += 1
 
     def __find_min(self, dataset):
         min_val = sys.maxint
@@ -451,7 +479,7 @@ class GliderNetCDFWriter(object):
                 )
             )
 
-    def __update_bounds(self):
+    def update_bounds(self):
         """ Internal function that updates all global attribute bounds
         before closing a file.
         """
@@ -459,15 +487,14 @@ class GliderNetCDFWriter(object):
         for key, desc in self.datatypes.items():
             if 'global_bound' in desc:
                 prefix = desc['global_bound']
-                dataset = np.array(self.nc.variables[desc['name']][:])
-                dataset[dataset == NC_FILL_VALUES['f8']] = float('nan')
+                dataset = self.nc.variables[desc['name']][:]
                 self.nc.setncattr(
                     prefix + '_min',
-                    np.nanmin(dataset)
+                    self.__find_min(dataset)
                 )
                 self.nc.setncattr(
                     prefix + '_max',
-                    np.nanmax(dataset)
+                    self.__find_max(dataset)
                 )
                 self.nc.setncattr(
                     prefix + '_units',
@@ -485,78 +512,3 @@ class GliderNetCDFWriter(object):
                     prefix + '_precision',
                     desc['attrs']['precision']
                 )
-
-    def __update_salinity(self):
-        try:
-            salinity = calculate_practical_salinity(
-                np.array(self.nc.variables["time"][:]),
-                np.array(self.nc.variables["conductivity"][:]),
-                np.array(self.nc.variables["temperature"][:]),
-                np.array(self.nc.variables["pressure"][:])
-            )
-        except ValueError, ex:
-            print ex
-            return
-
-        # Insert values
-        salinity[np.isnan(salinity)] = NC_FILL_VALUES['f8']
-        self.nc.variables["salinity"][:] = salinity
-
-        # Insert flags
-        qaqc = np.column_stack((
-            self.nc.variables["conductivity_qc"][:],
-            self.nc.variables["temperature_qc"][:],
-            self.nc.variables["pressure_qc"][:]
-        ))
-        self.nc.variables["salinity_qc"][:] = np.amin(qaqc, 1)
-
-    def __interpolate_gps(self):
-        try:
-            interp_lat, interp_lon = interpolate_gps(
-                np.array(self.nc.variables["time"][:]),
-                np.array(self.nc.variables["lat"][:]),
-                np.array(self.nc.variables["lon"][:])
-            )
-        except ValueError, ex:
-            print ex
-            return
-
-        # Mark places where interpolated values will be
-        lat = self.nc.variables["lat"][:]
-        lon = self.nc.variables["lon"][:]
-        if(type(self.nc.variables["lat"][:]) is np.ma.core.MaskedArray):
-            self.nc.variables["lat_qc"][lat.mask] = 8  # Interpolate flag
-            self.nc.variables["lon_qc"][lon.mask] = 8  # Interpolate flag
-
-        # Insert values
-        self.nc.variables["lat"][:] = interp_lat
-        self.nc.variables["lon"][:] = interp_lon
-
-    def __calculate_density(self):
-        try:
-            density = calculate_density(
-                np.array(self.nc.variables["time"][:]),
-                np.array(self.nc.variables["temperature"][:]),
-                np.array(self.nc.variables["pressure"][:]),
-                np.array(self.nc.variables["salinity"][:]),
-                np.array(self.nc.variables["lat"][:]),
-                np.array(self.nc.variables["lon"][:])
-            )
-        except ValueError, ex:
-            print ex
-            return
-
-        density[np.isnan(density)] = NC_FILL_VALUES['f8']
-        self.nc.variables["density"][:] = density
-        self.nc.variables["density_qc"][:] = (
-            self.nc.variables["salinity_qc"][:]
-        )
-
-    def update_calculated(self):
-        """ Internal function that calculates salinity before closing a file
-        """
-
-        self.__interpolate_gps()
-
-        self.__update_salinity()
-        self.__calculate_density()

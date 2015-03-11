@@ -34,14 +34,6 @@ class TestMergedGliderDataReader(unittest.TestCase):
         self.deployment = json.loads(contents)
         self.global_attributes.update(self.deployment['global_attributes'])
 
-        datatype_config_path = (
-            './example_config/datatypes.json'  # NOQA
-        )
-        self.datatypes = {}
-        with open(datatype_config_path, 'r') as f:
-            contents = f.read()
-        self.datatypes = json.loads(contents)
-
         instruments_config_path = (
             './example_config/usf-bass/instruments.json'  # NOQA
         )
@@ -104,12 +96,6 @@ class TestMergedGliderDataReader(unittest.TestCase):
             nc = glider_nc.nc
             self.assertIn('instrument_ctd', nc.variables)
 
-    def test_set_datatypes(self):
-        with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
-            glider_nc.set_datatypes(self.datatypes)
-            nc = glider_nc.nc
-            self.assertIn('depth', nc.variables)
-
     def test_data_insert(self):
         flightReader = GliderBDReader(
             ['./test_data/usf-bass/usf-bass-2014-061-1-0.sbd']
@@ -120,10 +106,8 @@ class TestMergedGliderDataReader(unittest.TestCase):
         reader = MergedGliderBDReader(flightReader, scienceReader)
 
         with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
-            glider_nc.set_datatypes(self.datatypes)
             for line in reader:
-                glider_nc.insert_dict(line)
-            glider_nc.update_calculated()
+                glider_nc.stream_dict_insert(line)
 
 
 if __name__ == '__main__':

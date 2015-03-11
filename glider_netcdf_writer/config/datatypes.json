@@ -1,0 +1,645 @@
+{
+    "timestamp": {
+        "name": "time",
+        "is_dimension": true,
+        "dimension_length": null,
+        "dimension": "time",
+        "type": "f8",
+        "attrs": {
+            "axis": "T",
+            "calendar": "gregorian",
+            "units": "seconds since 1970-01-01T00:00:00Z",
+            "standard_name": "time",
+            "long_name": "Time",
+            "observation_type": "measured",
+            "sensor_name": " ",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 2147483647,
+            "accuracy": "1 second",
+            "precision": "1 second",
+            "resolution": "1 second"
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "time Quality Flag"
+            }
+        }
+    },
+    "platform": {
+        "name": "platform",
+        "dimension": null,
+        "type": "i1",
+        "attrs": {}
+    },
+    "profile_id": {
+        "name": "profile_id",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "Sequential profile number within the trajectory.  This value is unique in each file that is part of a single trajectory/deployment.",
+            "long_name": "Profile ID",
+            "valid_max": 2147483647,
+            "valid_min": 1
+        }
+    },
+    "profile_time": {
+        "name": "profile_time",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "calendar": "gregorian",
+            "comment": "Timestamp corresponding to the mid-point of the profile",
+            "long_name": "Profile Center Time",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "time",
+            "units": "seconds since 1970-01-01T00:00:00Z"
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_time Quality Flag"
+            }
+        }
+    },
+    "profile_lat": {
+        "name": "profile_lat",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "Value is interpolated to provide an estimate of the latitude at the mid-point of the profile",
+            "long_name": "Profile Center Latitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "latitude",
+            "units": "degrees_north",
+            "valid_max": 90,
+            "valid_min": -90
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_lat Quality Flag"
+            }
+        }
+    },
+    "profile_lon": {
+        "name": "profile_lon",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "Value is interpolated to provide an estimate of the longitude at the mid-point of the profile",
+            "long_name": "Profile Center Longitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "longitude",
+            "units": "degrees_east",
+            "valid_max": 180,
+            "valid_min": -180
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_lon Quality Flag"
+            }
+        }
+    },
+    "segment_id": {
+        "name": "segment_id",
+        "dimension": null,
+        "type": "i2",
+        "attrs": {
+            "comment": "Sequential segment number within a trajectory/deployment. A segment corresponds to the set of data collected between 2 gps fixes obtained when the glider surfaces.",
+            "long_name": "Segment ID",
+            "valid_min": 1,
+            "valid_max": 999,
+            "observation_type": "calculated"
+        }
+    },
+    "time_uv": {
+        "name": "time_uv",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "long_name": "Depth-Averaged Time",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "time",
+            "units": "seconds since 1970-01-01T00:00:00Z",
+            "valid_max": 0,
+            "valid_min": 2147483647
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "time_uv Quality Flag"
+            }
+        }
+    },
+    "lat_uv": {
+        "name": "lat_uv",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "long_name": "Depth-Averaged Latitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "latitude",
+            "units": "degrees_north",
+            "valid_max": 90,
+            "valid_min": -90
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "lat_uv Quality Flag"
+            }
+        }
+    },
+    "lon_uv": {
+        "name": "lon_uv",
+        "dimension": null,
+        "type": "f8",
+        "attrs": {
+            "comment": "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "long_name": "Depth-Averaged Longitude",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "standard_name": "longitude",
+            "units": "degrees_east",
+            "valid_max": 180,
+            "valid_min": -180
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "profile_lon Quality Flag"
+            }
+        }
+    },
+    "m_altitude-m": {
+        "name": "altitude",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "Z",
+            "units": "meters",
+            "standard_name": "altitude",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "valid_min": 0,
+            "valid_max": 2000,
+            "long_name": "Altitude",
+            "reference_datum": "sea-bottom",
+            "positive": "up",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_altimeter",
+            "sensor_name": " ",
+            "comment": ""
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "altitude Quality Flag"
+            }
+        }
+    },
+    "m_depth-m": {
+        "name": "depth",
+        "type": "f8",
+        "dimension": "time",
+        "global_bound": "geospatial_vertical",
+        "attrs": {
+            "axis": "Z",
+            "units": "meters",
+            "standard_name": "depth",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "valid_min": 0,
+            "valid_max": 2000,
+            "long_name": "Depth",
+            "reference_datum": "sea-surface",
+            "positive": "down",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "sensor_name": " ",
+            "comment": ""
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "depth Quality Flag"
+            }
+        }
+    },
+    "m_pitch-rad": {
+        "name": "pitch",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "radians",
+            "standard_name": "platform_pitch_angle",
+            "long_name": "Pitch",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_compass",
+            "sensor_name": " ",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "comment": "",
+            "valid_min": -180,
+            "valid_max": 180
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "pitch Quality Flag"
+            }
+        }
+    },
+    "m_gps_lat-lat": {
+        "name": "lat",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "Y",
+            "units": "degrees_north",
+            "standard_name": "latitude",
+            "long_name": "Latitude",
+            "valid_min": -90,
+            "valid_max": 90,
+            "observation_type": "measured",
+            "platform": "platform",
+            "comment": "Values may be interpolated between measured GPS fixes",
+            "sensor_name": " ",
+            "reference": "WGS84",
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "gps lat Quality Flag"
+            }
+        }
+    },
+    "m_water_vy-m/s": {
+        "name": "v",
+        "type": "f8",
+        "dimension": null,
+        "attrs": {
+            "units": "m s-1",
+            "standard_name": "northward_sea_water_velocity",
+            "valid_min": -10,
+            "valid_max": 10,
+            "long_name": "Northward Sea Water Velocity",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "sensor_name": " ",
+            "coordinates": "longitude_estimate latitude_estimate time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "comment": ""
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name" : "northward_sea_water_velocity Quality Flag"
+            }
+        }
+    },
+    "m_water_vx-m/s": {
+        "name": "u",
+        "type": "f8",
+        "dimension": null,
+        "attrs": {
+            "units": "m s-1",
+            "standard_name": "eastward_sea_water_velocity",
+            "valid_min": -10,
+            "valid_max": 10,
+            "long_name": "Eastward Sea Water Velocity",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "sensor_name": " ",
+            "coordinates": "longitude_estimate latitude_estimate time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "comment": ""
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name" : "eastward_sea_water_velocity Quality Flag"
+            }
+        }
+    },
+    "m_roll-rad": {
+        "name": "roll",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "radians",
+            "standard_name": "platform_roll_angle",
+            "long_name": "Roll",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_compass",
+            "valid_min": 0,
+            "valid_max": 6.28317,
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " ",
+            "comment": ""
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "roll Quality Flag"
+            }
+        }
+    },
+    "m_gps_lon-lon": {
+        "name": "lon",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "X",
+            "units": "degrees_east",
+            "standard_name": "longitude",
+            "long_name": "Longitude",
+            "valid_min": -180,
+            "valid_max": 180,
+            "observation_type": "calculated",
+            "platform": "platform",
+            "comment": "Values may be interpolated between measured GPS fixes",
+            "sensor_name": " ",
+            "reference": "WGS84",
+            "coordinate_reference_frame": "urn:ogc:crs:EPSG::4326",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "lon dead reckoning Quality Flag"
+            }
+        }
+    },
+    "sci_water_temp-degc": {
+        "name": "temperature",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "Celsius",
+            "standard_name": "sea_water_temperature",
+            "valid_min": -5,
+            "valid_max": 40,
+            "long_name": "Temperature",
+            "observation_type": "measured",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "coordinates": "lon lat depth time",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " ",
+            "comment": ""
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "temperature Quality Flag"
+            }
+        }
+    },
+    "salinity-psu": {
+        "name": "salinity",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "psu",
+            "standard_name": "sea_water_salinity",
+            "valid_min": 0,
+            "valid_max": 10,
+            "long_name": "Salinity",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "coordinates": "lon lat depth time",
+            "comment": " ",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "salinity Quality Flag"
+            }
+        }
+    },
+    "density-kg/m^3": {
+        "name": "density",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "kg/m^3",
+            "standard_name": "sea_water_density",
+            "valid_min": 0,
+            "valid_max": 10,
+            "long_name": "Density",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "coordinates": "lon lat depth time",
+            "comment": " ",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "density Quality Flag"
+            }
+        }
+    },
+    "sci_bbfl2s_chlor_scaled-ug/l": {
+        "name": "chl",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "ug/l",
+            "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
+            "long_name": "Chlorophyll mass concentration in sea water",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_fluorometer",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 100,
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "chlorophyll Quality Flag"
+            }
+        }
+    },
+    "sci_water_cond-s/m": {
+        "name": "conductivity",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "S m-1",
+            "standard_name": "sea_water_electrical_conductivity",
+            "valid_min": 0,
+            "valid_max": 10,
+            "long_name": "Conductivity",
+            "observation_type": "measured",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "coordinates": "lon lat depth time",
+            "comment": " ",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "conductivity Quality Flag"
+            }
+        }
+    },
+    "sci_water_pressure-bar": {
+        "name": "pressure",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "axis": "Z",
+            "units": "dbar",
+            "standard_name": "sea_water_pressure",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 2000,
+            "long_name": "Pressure",
+            "reference_datum": "sea-surface",
+            "positive": "down",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_ctd",
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "pressure Quality Flag"
+            }
+        }
+    },
+    "sci_bbfl2s_bb_scaled-nodim": {
+        "name": "backscatter",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "nodim",
+            "standard_name": "backscattering_ratio",
+            "long_name": "Backscatter Ratio",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_fluorometer",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 1,
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "backscatter Quality Flag"
+            }
+        }
+    },
+    "sci_oxy3835_oxygen-nodim": {
+        "name": "dissolved_oxygen",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "uM",
+            "standard_name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water",
+            "long_name": "Dissolved Oxygen Mole Concentration",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_dissolved_oxygen",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 250,
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "mole_concentration_of_dissolved_molecular_oxygen_in_sea_water Quality Flag"
+            }
+        }
+    },
+    "sci_bbfl2s_cdom_scaled-ppb": {
+        "name": "cdom",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "parts per billion",
+            "standard_name": "concentration_of_coloured_dissolved_organic_matter",
+            "long_name": "Colored Dissolved Organic Matter",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_fluorometer",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 80,
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "cdom Quality Flag"
+            }
+        }
+    },
+    "m_heading-rad": {
+        "name": "heading",
+        "type": "f8",
+        "dimension": "time",
+        "attrs": {
+            "units": "radians",
+            "standard_name": "platform_yaw_angle",
+            "long_name": "Compass Heading",
+            "observation_type": "calculated",
+            "platform": "platform",
+            "instrument": "instrument_compass",
+            "comment": " ",
+            "valid_min": 0,
+            "valid_max": 6.28317,
+            "accuracy": " ",
+            "precision": " ",
+            "resolution": " ",
+            "sensor_name": " "
+        },
+        "status_flag": {
+            "attrs": {
+                "long_name": "platform_yaw_angle Quality Flag"
+            }
+        }
+    }
+}
