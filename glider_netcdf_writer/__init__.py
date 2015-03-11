@@ -38,7 +38,7 @@ GLIDER_QC = {
 
 
 def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1,
-                       config_path=DEFAULT_GLIDER_BASE):
+                       config_path=DEFAULT_GLIDER_BASE, DEBUG=False):
     return GliderNetCDFWriter(output_path, mode, COMP_LEVEL, config_path)
 
 
@@ -48,7 +48,7 @@ class GliderNetCDFWriter(object):
     """
 
     def __init__(self, output_path, mode='w', COMP_LEVEL=1,
-                 config_path=DEFAULT_GLIDER_BASE):
+                 config_path=DEFAULT_GLIDER_BASE, DEBUG=False):
         """Initializes a Glider NetCDF Writer
         NOTE: Does not open the file.
 
@@ -65,6 +65,7 @@ class GliderNetCDFWriter(object):
         self.mode = mode
         self.COMP_LEVEL = COMP_LEVEL
         self.config_path = config_path
+        self.DEBUG = DEBUG
         self.datatypes = {}
 
     def __setup_qaqc(self):
@@ -403,7 +404,8 @@ class GliderNetCDFWriter(object):
             try:
                 datatype = self.check_datatype_exists(name)
             except KeyError, e:
-                print e
+                if self.DEBUG:
+                    print e
                 continue
 
             datatype = self.datatypes[name]

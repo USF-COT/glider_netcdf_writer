@@ -215,12 +215,10 @@ def read_attrs(glider_config_path, glider_name):
 
 def main():
     args = read_args()
-    print args
     attrs = read_attrs(args.glider_config_path, args.glider_name)
 
     # Find profile breaks
     profiles = find_profiles(args)
-    print "Profiles:\n %s" % profiles
 
     # Interpolate GPS
     interp_gps = get_file_set_gps(args)
@@ -270,7 +268,7 @@ def main():
                 glider_nc.calculate_salinity()
                 glider_nc.calculate_density()
             except Exception, ex:
-                print ex
+                print "(%s)- %s" % (file_path, ex)
 
         profile_id += 1
 
