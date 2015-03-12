@@ -15,6 +15,10 @@ from glider_binary_data_reader import (
     MergedGliderBDReader
 )
 
+from glider_binary_data_reader.methods import parse_glider_filename
+
+from itertools import izip
+
 from glider_netcdf_writer import (
     open_glider_netcdf
 )
@@ -31,22 +35,22 @@ from glider_utils.yo.filters import default_filter
 from glider_utils.gps import interpolate_gps
 
 
-def create_reader(flight_paths, science_paths):
+def create_reader(flight_path, science_path):
     flight_reader = GliderBDReader(
-        flight_paths
+        [flight_path]
     )
     science_reader = GliderBDReader(
-        science_paths
+        [science_path]
     )
     return MergedGliderBDReader(flight_reader, science_reader)
 
 
-def find_profiles(args):
+def find_profiles(flight_path, science_path, time_name, depth_name):
     profile_values = []
-    reader = create_reader(args.flight, args.science)
+    reader = create_reader(flight_path, science_path)
     for line in reader:
-        if args.depth in line:
-            profile_values.append([line[args.time], line[args.depth]])
+        if depth_name in line:
+            profile_values.append([line[time_name], line[depth_name]])
 
     profile_values = np.array(profile_values)
     profile_dataset = find_yo_extrema(
@@ -55,18 +59,18 @@ def find_profiles(args):
     return default_filter(profile_dataset)
 
 
-def get_file_set_gps(args):
+def get_file_set_gps(flight_path, science_path, time_name, gps_prefix):
     gps_values = []
-    reader = create_reader(args.flight, args.science)
-    lat_name = args.gps + 'lat-lat'
-    lon_name = args.gps + 'lon-lon'
+    reader = create_reader(flight_path, science_path)
+    lat_name = gps_prefix + 'lat-lat'
+    lon_name = gps_prefix + 'lon-lon'
     for line in reader:
         if lat_name in line:
             gps_values.append(
-                [line[args.time], line[lat_name], line[lon_name]]
+                [line[time_name], line[lat_name], line[lon_name]]
             )
         else:
-            gps_values.append([line[args.time], np.nan, np.nan])
+            gps_values.append([line[time_name], np.nan, np.nan])
 
     gps_values = np.array(gps_values)
     gps_values[:, 1], gps_values[:, 2] = interpolate_gps(
@@ -76,42 +80,57 @@ def get_file_set_gps(args):
     return gps_values
 
 
-def fill_gps(args, line, interp_gps):
-    lat_name = args.gps + 'lat-lat'
-    lon_name = args.gps + 'lon-lon'
+def fill_gps(line, interp_gps, time_name, gps_prefix):
+    lat_name = gps_prefix + 'lat-lat'
+    lon_name = gps_prefix + 'lon-lon'
     if lat_name not in line:
-        timestamp = line[args.time]
+        timestamp = line[time_name]
         line[lat_name] = interp_gps[interp_gps[:, 0] == timestamp, 1][0]
         line[lon_name] = interp_gps[interp_gps[:, 0] == timestamp, 2][0]
 
     return line
 
 
-def init_netcdf(file_path, global_attrs, deployment_attrs,
-                instruments_attrs, profile_id):
-    # Check if the output path already exists
+def init_netcdf(file_path, attrs, segment_id, profile_id):
+    # Check if the output path already exists, remove old file
     mode = 'w'
     if os.path.isfile(file_path):
-        mode = 'a'
+        os.remove(file_path)
 
     with open_glider_netcdf(file_path, mode) as glider_nc:
         # Set global attributes
-        glider_nc.set_global_attributes(global_attrs)
+        glider_nc.set_global_attributes(attrs['global'])
 
         # Set Trajectory
         glider_nc.set_trajectory_id(
-            deployment_attrs['glider'],
-            deployment_attrs['trajectory_date']
+            attrs['deployment']['glider'],
+            attrs['deployment']['trajectory_date']
         )
 
         # Set Platform
-        glider_nc.set_platform(deployment_attrs['platform'])
+        glider_nc.set_platform(attrs['deployment']['platform'])
 
         # Set Instruments
-        glider_nc.set_instruments(instruments_attrs)
+        glider_nc.set_instruments(attrs['instruments'])
+
+        # Set Segment ID
+        glider_nc.set_segment_id(segment_id)
 
         # Set Profile ID
         glider_nc.set_profile_id(profile_id)
+
+
+def process_segment_ids(args):
+    if args.segment_id is None:
+        args.segment_id = []
+        for path in args.flight:
+            details = parse_glider_filename(path)
+            args.segment_id.append(details['segment'])
+    else:
+        for segment_id, flight_path in izip(args.segment_id, args.flight):
+            if segment_id == -1:
+                details = parse_glider_filename(path)
+                args.segment_id = details['segment']
 
 
 def read_args():
@@ -143,6 +162,12 @@ def read_args():
     )
 
     parser.add_argument(
+        '--segment_id', nargs='+',
+        help='Set the segment ID',
+        default=None
+    )
+
+    parser.add_argument(
         '-t', '--time',
         help="Set time parameter to use for profile recognition",
         default="timestamp"
@@ -155,7 +180,7 @@ def read_args():
     )
 
     parser.add_argument(
-        '-g', '--gps',
+        '-g', '--gps_prefix',
         help="Set prefix for gps parameters to use for location estimation",
         default="m_gps_"
     )
@@ -170,7 +195,13 @@ def read_args():
         help="Set of science data files to process."
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.flight = sorted(args.flight)
+    args.science = sorted(args.science)
+
+    process_segment_ids(args)
+
+    return args
 
 
 def read_attrs(glider_config_path, glider_name):
@@ -213,21 +244,22 @@ def read_attrs(glider_config_path, glider_name):
     return attrs
 
 
-def main():
-    args = read_args()
-    attrs = read_attrs(args.glider_config_path, args.glider_name)
-
+def process_pair(args, attrs, segment_id, flight_path, science_path):
     # Find profile breaks
-    profiles = find_profiles(args)
+    profiles = find_profiles(flight_path, science_path, args.time, args.depth)
 
     # Interpolate GPS
-    interp_gps = get_file_set_gps(args)
+    interp_gps = get_file_set_gps(
+        flight_path, science_path, args.time, args.gps_prefix
+    )
+
+    # Find Segment ID
 
     # Create NetCDF Files for Each Profile
     profile_id = 0
     profile_end = 0
     file_path = None
-    reader = create_reader(args.flight, args.science)
+    reader = create_reader(flight_path, science_path)
     for line in reader:
         if profile_end < line['timestamp']:
             # Open new NetCDF
@@ -244,19 +276,14 @@ def main():
 
             profile = profiles[profiles[:, 2] == profile_id]
 
-            init_netcdf(
-                file_path,
-                attrs['global'],
-                attrs['deployment'],
-                attrs['instruments'],
-                profile_id + 1  # Store 1 based profile id
-            )
+            # NOTE: Store 1 based profile id
+            init_netcdf(file_path, attrs, segment_id, profile_id + 1)
             profile = profiles[profiles[:, 2] == profile_id]
             profile_end = max(profile[:, 0])
 
         with open_glider_netcdf(file_path, 'a') as glider_nc:
             while line['timestamp'] <= profile_end:
-                line = fill_gps(args, line, interp_gps)
+                line = fill_gps(line, interp_gps, args.time, args.gps_prefix)
                 glider_nc.stream_dict_insert(line)
                 try:
                     line = reader.next()
@@ -271,6 +298,35 @@ def main():
                 print "(%s)- %s" % (file_path, ex)
 
         profile_id += 1
+
+
+def main():
+    args = read_args()
+
+    if len(args.flight) != len(args.science):
+        print 'Flight and science files arrays must be the same length'
+        return 1
+
+    if args.segment_id is not None \
+       and len(args.flight) != len(args.segment_id):
+        print 'Segment ID array must be the same length as the files arrays'
+        return 1
+
+    attrs = read_attrs(args.glider_config_path, args.glider_name)
+
+    for segment_id, flight_path, science_path in \
+            izip(args.segment_id, args.flight, args.science):
+
+        if flight_path.rsplit('.')[0] != science_path.rsplit('.')[0]:
+            print(
+                'Flight file %s not paired correctly with '
+                'science file %s. Skipping pair.'
+                % (flight_path, science_path)
+            )
+        else:
+            process_pair(args, attrs, segment_id, flight_path, science_path)
+
+    return 0
 
 
 if __name__ == '__main__':
