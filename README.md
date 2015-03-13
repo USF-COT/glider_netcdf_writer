@@ -37,6 +37,8 @@ create_glider_netcdf.py -f <path to flight file> -s <path to science file> <glid
 ```
 Outputs a set of profiles from a merged flight and science dataset NetCDF files to the output directory.  *Can also specify only a flight (-f) or science (-s) without the corresponding file.*
 
+For the example above, base config directory would be something like the example_config directory in the repository.  Do not point directly at a glider configuration directory.  That is why you must specify a glider name.
+
 #### Check NetCDF File
 ```bash
 check_glider_netcdf.py <path to NetCDF file>
