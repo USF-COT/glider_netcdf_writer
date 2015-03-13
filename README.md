@@ -35,7 +35,7 @@ A brief overview of each file and folder follows:
 ```bash
 create_glider_netcdf.py -f <path to flight file> -s <path to science file> <glider name> <base config directory> <NetCDF output directory>
 ```
-Outputs a set of profile NetCDF files to the output directory
+Outputs a set of profiles from a merged flight and science dataset NetCDF files to the output directory.  *Can also specify only a flight (-f) or science (-s) without the corresponding file.*
 
 #### Check NetCDF File
 ```bash
@@ -73,7 +73,7 @@ reader = MergedGliderBDReader(flightReader, scienceReader)
 
 with open_glider_netcdf(self.test_path, self.mode) as glider_nc:
     for line in reader:
-        glider_nc.insert_dict(line)
+        glider_nc.stream_dict_insert(line)
 ```
 
 See a larger example in [tests.py](https://github.com/USF-COT/glider_netcdf_writer/blob/master/tests.py)
