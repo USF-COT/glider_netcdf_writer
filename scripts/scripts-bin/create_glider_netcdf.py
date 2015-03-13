@@ -17,8 +17,6 @@ from glider_binary_data_reader import (
 
 from glider_binary_data_reader.methods import parse_glider_filename
 
-from itertools import izip
-
 from glider_netcdf_writer import (
     open_glider_netcdf
 )
@@ -36,12 +34,19 @@ from glider_utils.gps import interpolate_gps
 
 
 def create_reader(flight_path, science_path):
-    flight_reader = GliderBDReader(
-        [flight_path]
-    )
-    science_reader = GliderBDReader(
-        [science_path]
-    )
+    if flight_path is not None:
+        flight_reader = GliderBDReader(
+            [flight_path]
+        )
+        if science_path is None:
+            return flight_reader
+    if science_path is not None:
+        science_reader = GliderBDReader(
+            [science_path]
+        )
+        if flight_path is None:
+            return science_reader
+
     return MergedGliderBDReader(flight_reader, science_reader)
 
 
@@ -120,20 +125,19 @@ def init_netcdf(file_path, attrs, segment_id, profile_id):
         glider_nc.set_profile_id(profile_id)
 
 
-def process_segment_ids(args):
-    if args.segment_id is None:
-        args.segment_id = []
-        for path in args.flight:
-            details = parse_glider_filename(path)
-            args.segment_id.append(details['segment'])
+def find_segment_id(flight_path, science_path):
+    if flight_path is None:
+        filename = science_path
     else:
-        for segment_id, flight_path in izip(args.segment_id, args.flight):
-            if segment_id == -1:
-                details = parse_glider_filename(path)
-                args.segment_id = details['segment']
+        filename = flight_path
+
+    print filename
+
+    details = parse_glider_filename(filename)
+    return details['segment']
 
 
-def read_args():
+def create_arg_parser():
     parser = argparse.ArgumentParser(
         description='Parses a set of glider binary data files to a '
                     'single NetCDF file according to configurations '
@@ -162,7 +166,7 @@ def read_args():
     )
 
     parser.add_argument(
-        '--segment_id', nargs='+',
+        '--segment_id', nargs=1,
         help='Set the segment ID',
         default=None
     )
@@ -186,22 +190,18 @@ def read_args():
     )
 
     parser.add_argument(
-        '-f', '--flight', nargs='+',
-        help="Set of flight data files to process."
+        '-f', '--flight',
+        help="Flight data file to process",
+        default=None
     )
 
     parser.add_argument(
-        '-s', '--science', nargs='+',
-        help="Set of science data files to process."
+        '-s', '--science',
+        help="Science data file to process",
+        default=None
     )
 
-    args = parser.parse_args()
-    args.flight = sorted(args.flight)
-    args.science = sorted(args.science)
-
-    process_segment_ids(args)
-
-    return args
+    return parser
 
 
 def read_attrs(glider_config_path, glider_name):
@@ -223,13 +223,6 @@ def read_attrs(glider_config_path, glider_name):
     with open(deployment_attrs_path, 'r') as f:
         attrs['deployment'] = json.load(f)
 
-    # Load datatypes
-    datatypes_attrs_path = (
-        os.path.join(glider_config_path, "datatypes.json")
-    )
-    with open(datatypes_attrs_path, 'r') as f:
-        attrs['datatypes'] = json.load(f)
-
     # Load instruments
     instruments_attrs_path = (
         os.path.join(glider_config_path, glider_name,
@@ -244,7 +237,10 @@ def read_attrs(glider_config_path, glider_name):
     return attrs
 
 
-def process_pair(args, attrs, segment_id, flight_path, science_path):
+def process_dataset(args, attrs):
+    flight_path = args.flight
+    science_path = args.science
+
     # Find profile breaks
     profiles = find_profiles(flight_path, science_path, args.time, args.depth)
 
@@ -277,7 +273,7 @@ def process_pair(args, attrs, segment_id, flight_path, science_path):
             profile = profiles[profiles[:, 2] == profile_id]
 
             # NOTE: Store 1 based profile id
-            init_netcdf(file_path, attrs, segment_id, profile_id + 1)
+            init_netcdf(file_path, attrs, args.segment_id, profile_id + 1)
             profile = profiles[profiles[:, 2] == profile_id]
             profile_end = max(profile[:, 0])
 
@@ -301,30 +297,26 @@ def process_pair(args, attrs, segment_id, flight_path, science_path):
 
 
 def main():
-    args = read_args()
+    parser = create_arg_parser()
+    args = parser.parse_args()
 
-    if len(args.flight) != len(args.science):
-        print 'Flight and science files arrays must be the same length'
-        return 1
+    # Check filenames
+    if args.flight is None and args.science is None:
+        raise ValueError('Must specify flight, science or both paths')
 
-    if args.segment_id is not None \
-       and len(args.flight) != len(args.segment_id):
-        print 'Segment ID array must be the same length as the files arrays'
-        return 1
+    if args.flight is not None and args.science is not None:
+        flight_prefix = args.flight.rsplit('.')[0]
+        science_prefix = args.science.rsplit('.')[0]
+        if flight_prefix != science_prefix:
+            raise ValueError('Flight and science file names must match')
+
+    # Fill in segment ID
+    if args.segment_id is None:
+        args.segment_id = find_segment_id(args.flight, args.science)
 
     attrs = read_attrs(args.glider_config_path, args.glider_name)
 
-    for segment_id, flight_path, science_path in \
-            izip(args.segment_id, args.flight, args.science):
-
-        if flight_path.rsplit('.')[0] != science_path.rsplit('.')[0]:
-            print(
-                'Flight file %s not paired correctly with '
-                'science file %s. Skipping pair.'
-                % (flight_path, science_path)
-            )
-        else:
-            process_pair(args, attrs, segment_id, flight_path, science_path)
+    process_dataset(args, attrs)
 
     return 0
 
