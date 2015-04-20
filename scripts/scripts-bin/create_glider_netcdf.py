@@ -249,8 +249,6 @@ def process_dataset(args, attrs):
         flight_path, science_path, args.time, args.gps_prefix
     )
 
-    # Find Segment ID
-
     # Create NetCDF Files for Each Profile
     profile_id = 0
     profile_end = 0
