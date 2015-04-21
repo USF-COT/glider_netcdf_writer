@@ -1,6 +1,9 @@
 import daemon
 import zmq
+
+import os
 import sys
+import subprocess
 
 import argparse
 
@@ -12,9 +15,9 @@ import lockfile
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Listens for GDAM to process new glider binary data files '
-                    'parses new files into the IOOS NetCDF standard and '
-                    'places the NetCDF into a specified directory.'
+        description='Listens for GDAM to process new glider binary data '
+                    'files. Runs create_glider_netcdf.py script in a '
+                    'subprocess on new files to produce a NetCDF file.'
     )
 
     parser.add_argument(
@@ -76,6 +79,44 @@ def parse_args():
     return parser.parse_args()
 
 
+MODE_MAPPING = {
+    "rt": [".sbd", ".tbd", ".mbd", ".nbd"],
+    "delayed": [".dbd", ".ebd"]
+}
+
+
+def process_files(message, args):
+    mode = 'rt'
+
+    filename, extension = os.path.splitext(message['flight_file'])
+    if extension in MODE_MAPPING['delayed']:
+        mode = 'delayed'
+    else:
+        mode = 'rt'
+
+    flight_path = os.path.join(
+        message['path'],
+        message['flight_file']
+    )
+    science_path = os.path.join(
+        message['path'],
+        message['science_path']
+    )
+
+    subprocess.call([
+        "create_glider_netcdf.py",
+        message['glider'],
+        args.config_path,
+        args.output_path,
+        "--mode",
+        mode,
+        "-f",
+        flight_path,
+        "-s",
+        science_path
+    ])
+
+
 def run_subscriber(args):
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
@@ -85,7 +126,7 @@ def run_subscriber(args):
     while True:
         try:
             message = socket.recv_json()
-            print message
+            process_files(message, args)
         except Exception, e:
             logger.error("Subscriber exited: %s" % (e))
             break
