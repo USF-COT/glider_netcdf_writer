@@ -21,11 +21,6 @@ def parse_args():
     )
 
     parser.add_argument(
-        'glider_name',
-        help='Name of glider that generated given binary files.'
-    )
-
-    parser.add_argument(
         'glider_config_path',
         help='Path to configuration files for institution.'
     )
