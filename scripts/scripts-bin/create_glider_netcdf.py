@@ -298,6 +298,8 @@ def main():
     parser = create_arg_parser()
     args = parser.parse_args()
 
+    print args
+
     # Check filenames
     if args.flight is None and args.science is None:
         raise ValueError('Must specify flight, science or both paths')

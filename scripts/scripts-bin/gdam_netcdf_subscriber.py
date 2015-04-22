@@ -1,3 +1,5 @@
+#!/bin/python
+
 import daemon
 import zmq
 
@@ -6,6 +8,7 @@ import sys
 import subprocess
 
 import argparse
+import json
 
 import logging
 logger = logging.getLogger('gdam_netcdf_subscriber')
@@ -80,6 +83,24 @@ MODE_MAPPING = {
 }
 
 
+def find_output_path(message, args):
+    deployment_vars = {}
+    deployment_attrs_path = (
+        os.path.join(args.config_path, message['glider_name'],
+                     "deployment.json")
+    )
+    with open(deployment_attrs_path, 'r') as f:
+        deployment_vars = json.load(f)
+
+    if 'directory' in deployment_vars:
+        return os.path.join(
+            args.output_path,
+            deployment_vars['directory']
+        )
+    else:
+        return args.output_path
+
+
 def process_files(message, args):
     mode = 'rt'
 
@@ -98,11 +119,13 @@ def process_files(message, args):
         message['science_path']
     )
 
+    deployment_output_path = find_output_path(message, args)
+
     subprocess.call([
         "create_glider_netcdf.py",
         message['glider'],
         args.config_path,
-        args.output_path,
+        deployment_output_path,
         "--mode",
         mode,
         "-f",
