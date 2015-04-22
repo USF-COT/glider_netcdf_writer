@@ -119,7 +119,12 @@ def process_files(message, args):
         message['science_path']
     )
 
+    # Find the output path for a given deployment
     deployment_output_path = find_output_path(message, args)
+
+    # Create the output directory if necessary
+    if not os.path.exists(deployment_output_path):
+        os.makedirs(deployment_output_path)
 
     subprocess.call([
         "create_glider_netcdf.py",
