@@ -305,8 +305,8 @@ def main():
         raise ValueError('Must specify flight, science or both paths')
 
     if args.flight is not None and args.science is not None:
-        flight_prefix = args.flight.rsplit('.')[0]
-        science_prefix = args.science.rsplit('.')[0]
+        flight_prefix = os.path.split(args.flight)[1].rsplit('.')[0]
+        science_prefix = os.path.split(args.science)[1].rsplit('.')[0]
         if flight_prefix != science_prefix:
             raise ValueError('Flight and science file names must match')
 
