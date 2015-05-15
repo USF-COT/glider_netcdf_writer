@@ -36,6 +36,14 @@ GLIDER_QC = {
     "missing_value": 9
 }
 
+GLIDER_UV_DATATYPE_KEYS = (
+    'time_uv',
+    'm_water_vx-m/s',
+    'm_water_vy-m/s',
+    'lon_uv',
+    'lat_uv'
+)
+
 
 def open_glider_netcdf(output_path, mode='w', COMP_LEVEL=1,
                        config_path=DEFAULT_GLIDER_BASE, DEBUG=False):
@@ -260,8 +268,8 @@ class GliderNetCDFWriter(object):
             fill_value=NC_FILL_VALUES[desc['type']]
         )
 
-        for key, value in sorted(desc['attrs'].items()):
-            datatype.setncattr(key, value)
+        for k, v in sorted(desc['attrs'].items()):
+            datatype.setncattr(k, v)
 
         if 'status_flag' in desc:
             status_flag = desc['status_flag']
@@ -417,6 +425,42 @@ class GliderNetCDFWriter(object):
                     self.fill_uv_vars(line)
 
         self.stream_index += 1
+
+    def contains(self, datatype_key):
+        if datatype_key in self.datatypes:
+            field_name = self.datatypes[datatype_key]['name']
+            return field_name in self.nc.variables
+        else:
+            return False
+
+    def get_scalar(self, datatype_key):
+        if self.contains(datatype_key):
+            field_name = self.datatypes[datatype_key]['name']
+            return self.nc.variables[field_name].getValue()
+
+    def copy_field(self, src_glider_nc, datatype_key):
+        datatype = self.check_datatype_exists(datatype_key)
+        field_name = datatype['name']
+
+        if src_glider_nc.contains(field_name):
+            src_variable = src_glider_nc.nc.variables[field_name]
+
+            if 'time' in src_variable.dimensions:
+                self.set_array(datatype_key, src_variable[:])
+            else:
+                self.set_scalar(datatype_key, src_variable.getValue())
+
+        else:
+            raise KeyError(
+                'Field not found in source glider NetCDF: %s' % field_name
+            )
+
+    def copy_glider_datatypes(self, src_glider_nc, datatype_keys):
+        for datatype_key in datatype_keys:
+            try:
+                self.copy_field(src_glider_nc, datatype_key)
+            except KeyError, ex:
+                print ex
 
     def __netcdf_to_np_op(self, variable_data, operation):
         array = np.array(variable_data)

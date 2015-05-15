@@ -29,13 +29,13 @@
     "platform": {
         "name": "platform",
         "dimension": null,
-        "type": "i1",
+        "type": "i4",
         "attrs": {}
     },
     "profile_id": {
         "name": "profile_id",
         "dimension": null,
-        "type": "f8",
+        "type": "i4",
         "attrs": {
             "comment": "Sequential profile number within the trajectory.  This value is unique in each file that is part of a single trajectory/deployment.",
             "long_name": "Profile ID",

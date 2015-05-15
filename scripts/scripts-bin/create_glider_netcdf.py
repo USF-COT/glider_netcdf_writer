@@ -18,7 +18,8 @@ from glider_binary_data_reader import (
 from glider_binary_data_reader.methods import parse_glider_filename
 
 from glider_netcdf_writer import (
-    open_glider_netcdf
+    open_glider_netcdf,
+    GLIDER_UV_DATATYPE_KEYS
 )
 
 import sys
@@ -131,10 +132,25 @@ def find_segment_id(flight_path, science_path):
     else:
         filename = flight_path
 
-    print filename
-
     details = parse_glider_filename(filename)
     return details['segment']
+
+
+def fill_uv_variables(dst_glider_nc, uv_values):
+    for key, value in uv_values.items():
+        dst_glider_nc.set_scalar(key, value)
+
+
+def backfill_uv_variables(src_glider_nc, empty_uv_processed_paths):
+    uv_values = {}
+    for key_name in GLIDER_UV_DATATYPE_KEYS:
+        uv_values[key_name] = src_glider_nc.get_scalar(key_name)
+
+    for file_path in empty_uv_processed_paths:
+        with open_glider_netcdf(file_path, 'a') as dst_glider_nc:
+            fill_uv_variables(dst_glider_nc, uv_values)
+
+    return uv_values
 
 
 def create_arg_parser():
@@ -253,6 +269,8 @@ def process_dataset(args, attrs):
     profile_id = 0
     profile_end = 0
     file_path = None
+    uv_values = None
+    empty_uv_processed_paths = []
     reader = create_reader(flight_path, science_path)
     for line in reader:
         if profile_end < line['timestamp']:
@@ -284,6 +302,17 @@ def process_dataset(args, attrs):
                 except StopIteration:
                     break
 
+            # Handle UV Variables
+            if glider_nc.contains('time_uv'):
+                uv_values = backfill_uv_variables(
+                    glider_nc, empty_uv_processed_paths
+                )
+            elif uv_values is not None:
+                fill_uv_variables(glider_nc, uv_values)
+                del empty_uv_processed_paths[:]
+            else:
+                empty_uv_processed_paths.append(file_path)
+
             glider_nc.update_profile_vars()
             try:
                 glider_nc.calculate_salinity()
@@ -297,8 +326,6 @@ def process_dataset(args, attrs):
 def main():
     parser = create_arg_parser()
     args = parser.parse_args()
-
-    print args
 
     # Check filenames
     if args.flight is None and args.science is None:
