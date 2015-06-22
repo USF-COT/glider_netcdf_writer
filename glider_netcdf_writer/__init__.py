@@ -368,12 +368,16 @@ class GliderNetCDFWriter(object):
         for key, value in sorted(platform_attrs.items()):
             self.nc.variables['platform'].setncattr(key, value)
 
-    def set_instrument(self, name, attrs):
+    def set_instrument(self, name, var_type, attrs):
         """ Adds a description for a single instrument
         """
 
         if name not in self.nc.variables:
-            self.nc.createVariable(name, 'i1')
+            self.nc.createVariable(
+                name,
+                var_type,
+                fill_value=NC_FILL_VALUES[var_type]
+            )
 
         for key, value in sorted(attrs.items()):
             self.nc.variables[name].setncattr(key, value)
@@ -383,7 +387,11 @@ class GliderNetCDFWriter(object):
         """
 
         for description in instruments_array:
-            self.set_instrument(description['name'], description['attrs'])
+            self.set_instrument(
+                description['name'],
+                description['type'],
+                description['attrs']
+            )
 
     def fill_uv_vars(self, line):
         self.set_scalar('time_uv', line['m_present_time-timestamp'])

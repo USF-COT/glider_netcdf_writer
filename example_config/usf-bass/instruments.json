@@ -1,8 +1,8 @@
 [
     {
         "name": "instrument_ctd",
+        "type": "i4",
         "attrs": {
-            "type": "i32",
             "serial_number": "0126",
             "make_model": "Seabird WEBB Glider CTD",
             "comment": "Slocum Glider USF Bass",
@@ -16,22 +16,26 @@
     },
     {
         "name": "instrument_altimeter",
+        "type": "i4",
         "attrs": {
         }
     },
     {
         "name": "instrument_gps",
+        "type": "i4",
         "attrs": {
         }
     },
     {
         "name": "instrument_attitude",
+        "type": "i4",
         "attrs": {
             "make_model": "PNI TCM3"
         }
     },
     {
         "name": "instrument_irradiance",
+        "type": "i4",
         "attrs": {
             "serial_number": "0191",
             "make_model": "Satlantic OCR507 ICSW",
@@ -45,6 +49,7 @@
     },
     {
         "name": "instrument_radiance",
+        "type": "i4",
         "attrs": {
             "serial_number": "0091",
             "make_model": "Satlantic OCR507R10W",
@@ -58,6 +63,7 @@
     },
     {
         "name": "instrument_fluorometer",
+        "type": "i4",
         "attrs": {
             "serial_number": "0839",
             "make_model": "Wetlabs BBFL2SLO",
@@ -71,6 +77,7 @@
     },
     {
         "name": "instrument_dissolved_oxygen",
+        "type": "i4",
         "attrs": {
             "serial_number": "0122",
             "make_model": "Aanderaa 3835",
